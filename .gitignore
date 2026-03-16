@@ -1,0 +1,16 @@
+.classpath
+.project
+.settings/
+
+target/
+out/
+build/
+
+*.log
+*.tmp
+.DS_Store
+Thumbs.db
+
+# Allow tracking JARs in lib/ (required by project plan)
+*.jar
+!lib/*.jar
