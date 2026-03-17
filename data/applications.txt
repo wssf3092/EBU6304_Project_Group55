@@ -1,0 +1,4 @@
+# TA Recruitment System - Applications Data File
+# Format: applicationId,studentUsername,courseId,status,applyTime,statement
+# Status: PENDING | APPROVED | REJECTED
+# ---------------------------------------------------
