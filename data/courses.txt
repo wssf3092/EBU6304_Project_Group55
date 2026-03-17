@@ -1,0 +1,7 @@
+# TA Recruitment System - Courses Data File
+# Format: courseId,courseName,teacherUsername,taRequired,description
+# ---------------------------------------------------
+CS101,Introduction to Programming,teacher_wang,2,An introductory course covering basic programming concepts using Java
+CS201,Data Structures and Algorithms,teacher_wang,3,Covers fundamental data structures such as lists arrays trees and graphs
+CS301,Software Engineering,teacher_wang,2,Principles and practices of software engineering including agile development
+CS401,Database Systems,teacher_wang,1,Relational database design SQL query optimization and transaction management
