@@ -1,40 +1,16 @@
-# ===== Compiled Java =====
-*.class
-*.jar
-*.war
-*.ear
-build/
-out/
-target/
-
-# ===== IDE - IntelliJ IDEA =====
-.idea/
-*.iml
-*.iws
-*.ipr
-
-# ===== IDE - Eclipse =====
 .classpath
 .project
 .settings/
 
-# ===== IDE - VS Code =====
-.vscode/
+target/
+out/
+build/
 
-# ===== IDE - Cursor =====
-.cursor/
-
-# ===== OS Generated =====
+*.log
+*.tmp
 .DS_Store
 Thumbs.db
-desktop.ini
 
-# ===== Runtime Data Files (optional: if team decides to not track test data) =====
-# data/*.json
-# data/*.csv
-
-# ===== Logs =====
-*.log
-
-# ===== Tomcat =====
-catalina.out
+# Allow tracking JARs in lib/ (required by project plan)
+*.jar
+!lib/*.jar

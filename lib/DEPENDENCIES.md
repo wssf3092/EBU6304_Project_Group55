@@ -16,7 +16,8 @@ placed directly in this `lib/` directory. Team members must share JAR files via 
 
 | JAR Name | Version | Purpose | Source URL |
 |---|---|---|---|
-| *(none yet)* | — | — | — |
+| `junit-4.13.2.jar` | 4.13.2 | Unit testing framework | https://search.maven.org/artifact/junit/junit |
+| `hamcrest-core-1.3.jar` | 1.3 | JUnit dependency | https://search.maven.org/artifact/org.hamcrest/hamcrest-core |
 
 ## Planned / Future Dependencies
 
