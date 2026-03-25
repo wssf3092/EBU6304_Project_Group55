@@ -1,12 +1,14 @@
 package com.group55.ta.controller;
 
 import java.io.IOException;
-import java.lang.reflect.Method;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
+
+import com.group55.ta.dao.UserDao;
+import com.group55.ta.model.User;
 
 public class LoginServlet extends BaseServlet {
 
@@ -26,7 +28,8 @@ public class LoginServlet extends BaseServlet {
             return;
         }
 
-        Object user = authenticate(username, password);
+        UserDao userDao = new UserDao();
+        User user = userDao.authenticate(username, password);
         if (user == null) {
             request.setAttribute("errorMessage", "用户名或密码错误");
             forwardToView(request, response, "login");
@@ -34,8 +37,17 @@ public class LoginServlet extends BaseServlet {
         }
 
         HttpSession session = request.getSession(true);
-        session.setAttribute("currentUser", user);
-        response.sendRedirect(request.getContextPath() + "/dashboard");
+        session.setAttribute("user", user);
+
+        // Role-based redirect (currently all go to /dashboard)
+        String role = user.getRole();
+        if ("TEACHER".equalsIgnoreCase(role) || "Teacher".equals(role)) {
+            response.sendRedirect(request.getContextPath() + "/dashboard");
+        } else if ("ADMIN".equalsIgnoreCase(role) || "Admin".equals(role)) {
+            response.sendRedirect(request.getContextPath() + "/dashboard");
+        } else {
+            response.sendRedirect(request.getContextPath() + "/dashboard");
+        }
     }
 
     private static String trimToNull(String s) {
@@ -44,19 +56,6 @@ public class LoginServlet extends BaseServlet {
         }
         String t = s.trim();
         return t.isEmpty() ? null : t;
-    }
-
-    private Object authenticate(String username, String password) throws ServletException {
-        try {
-            Class<?> daoClass = Class.forName("com.group55.ta.dao.UserDao");
-            Object dao = daoClass.getDeclaredConstructor().newInstance();
-            Method authenticate = daoClass.getMethod("authenticate", String.class, String.class);
-            return authenticate.invoke(dao, username, password);
-        } catch (ClassNotFoundException e) {
-            throw new ServletException("缺少 com.group55.ta.dao.UserDao（请先合并 Dev-C 的 DAO 实现）", e);
-        } catch (Exception e) {
-            throw new ServletException("登录认证失败", e);
-        }
     }
 }
 
