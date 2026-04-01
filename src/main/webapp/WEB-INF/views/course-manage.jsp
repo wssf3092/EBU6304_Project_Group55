@@ -29,7 +29,7 @@
         <p class="text-muted mb-2">${course.description}</p>
         <c:set var="approvedCount" value="0"/>
         <c:forEach var="app" items="${applications}">
-            <c:if test="${app.status == 'APPROVED'}">
+            <c:if test="${app.status == 'ACCEPTED'}">
                 <c:set var="approvedCount" value="${approvedCount + 1}"/>
             </c:if>
         </c:forEach>
@@ -80,7 +80,7 @@
                                     <c:when test="${app.status == 'PENDING'}">
                                         <span class="status-badge status-pending">待审核</span>
                                     </c:when>
-                                    <c:when test="${app.status == 'APPROVED'}">
+                                    <c:when test="${app.status == 'ACCEPTED'}">
                                         <span class="status-badge status-approved">已通过</span>
                                     </c:when>
                                     <c:otherwise>

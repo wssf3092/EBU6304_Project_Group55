@@ -1,51 +1,67 @@
 package com.group55.ta.dao;
 
 import com.group55.ta.model.Course;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import com.group55.ta.util.AppPaths;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
+
+import java.nio.file.Path;
 import java.util.List;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
-/**
- * Unit tests for CourseDao.
- */
-public class CourseDaoTest {
+class CourseDaoTest {
 
-    private CourseDao courseDao;
+    @TempDir
+    Path tempDir;
 
-    @Before
-    public void setUp() {
-        courseDao = new CourseDao("data/test_courses.txt");
-        courseDao.clearAll();
-    }
-    
-    @After
-    public void tearDown() {
-        courseDao.clearAll();
+    @BeforeEach
+    void setUp() {
+        AppPaths.overrideDataRoot(tempDir);
     }
 
     @Test
-    public void testSaveAndFindById() {
-        Course course = new Course("C001", "Software Engineering", "Dr. Smith", "Learn SE principles", 3, 0);
-        
-        boolean saved = courseDao.save(course);
-        assertTrue("Course should be saved successfully", saved);
+    void saveAndFindById() {
+        CourseDao dao = new CourseDao();
+        Course c = new Course();
+        c.setCourseId("CSE101");
+        c.setName("Software Engineering");
+        c.setTeacher("MO_001");
+        c.setDescription("Desc");
+        c.setTaNeedCount(3);
+        c.setCurrentTaCount(0);
 
-        Course retrieved = courseDao.findById("C001");
-        assertNotNull("Course should be discoverable by its string ID", retrieved);
-        assertEquals("Course names must perfectly match", "Software Engineering", retrieved.getName());
-        assertEquals("TA need counts should match definition", 3, retrieved.getTaNeedCount());
+        assertTrue(dao.save(c));
+        Course loaded = dao.findById("CSE101");
+        assertNotNull(loaded);
+        assertEquals("Software Engineering", loaded.getName());
+        assertEquals(3, loaded.getTaNeedCount());
     }
 
     @Test
-    public void testFindAll() {
-        courseDao.save(new Course("C001", "Course 1", "T1", "Desc1", 2, 0));
-        courseDao.save(new Course("C002", "Course 2", "T2", "Desc2", 4, 1));
+    void findByTeacher() {
+        CourseDao dao = new CourseDao();
+        Course c1 = new Course();
+        c1.setCourseId("C1");
+        c1.setName("N1");
+        c1.setTeacher("MO_001");
+        c1.setDescription("");
+        c1.setTaNeedCount(1);
+        c1.setCurrentTaCount(0);
+        dao.save(c1);
 
-        List<Course> courses = courseDao.findAll();
-        assertNotNull("Course list shouldn't be null", courses);
-        assertTrue("Should return all saved courses accurately", courses.size() >= 2);
+        Course c2 = new Course();
+        c2.setCourseId("C2");
+        c2.setName("N2");
+        c2.setTeacher("MO_002");
+        c2.setDescription("");
+        c2.setTaNeedCount(2);
+        c2.setCurrentTaCount(0);
+        dao.save(c2);
+
+        List<Course> forMo1 = dao.findByTeacher("MO_001");
+        assertEquals(1, forMo1.size());
+        assertEquals("C1", forMo1.get(0).getCourseId());
     }
 }

@@ -14,12 +14,12 @@
         <div class="nav-links">
             <a href="${pageContext.request.contextPath}/dashboard" class="nav-link" data-page="dashboard">首页</a>
             <a href="${pageContext.request.contextPath}/courses" class="nav-link" data-page="courses">课程列表</a>
-            <c:if test="${sessionScope.user.role == 'Student'}">
+            <c:if test="${sessionScope.user.role == 'TA'}">
                 <a href="${pageContext.request.contextPath}/applications" class="nav-link" data-page="applications">我的申请</a>
             </c:if>
         </div>
         <div class="nav-user">
-            <span class="user-badge">${sessionScope.user.role == 'Teacher' ? '教师' : '学生'}</span>
+            <span class="user-badge">${sessionScope.user.role == 'MO' ? 'MO' : sessionScope.user.role == 'ADMIN' ? '管理员' : 'TA'}</span>
             <span>欢迎, ${sessionScope.user.name}</span>
             <a href="${pageContext.request.contextPath}/logout" class="btn btn-secondary btn-sm" onclick="return confirmAction('确定要注销登录吗？')">登出</a>
         </div>
@@ -37,8 +37,8 @@
             <div class="alert alert-success">${successMessage}</div>
         </c:if>
 
-        <!-- Student View -->
-        <c:if test="${sessionScope.user.role == 'Student'}">
+        <!-- TA View -->
+        <c:if test="${sessionScope.user.role == 'TA'}">
             <div class="card mb-3">
                 <h3 class="mb-2">我的申请记录</h3>
                 <c:choose>
@@ -66,7 +66,7 @@
                                                 <c:when test="${app.status == 'PENDING'}">
                                                     <span class="status-badge status-pending">待审核</span>
                                                 </c:when>
-                                                <c:when test="${app.status == 'APPROVED'}">
+                                                <c:when test="${app.status == 'ACCEPTED'}">
                                                     <span class="status-badge status-approved">已通过</span>
                                                 </c:when>
                                                 <c:when test="${app.status == 'REJECTED'}">
@@ -83,11 +83,11 @@
             </div>
         </c:if>
 
-        <!-- Teacher View -->
-        <c:if test="${sessionScope.user.role == 'Teacher'}">
+        <!-- MO / Admin course overview -->
+        <c:if test="${sessionScope.user.role == 'MO'}">
             <div class="card mb-3">
                 <div class="d-flex justify-between align-center mb-2">
-                    <h3>我教授的课程</h3>
+                    <h3>我创建的课程</h3>
                     <a href="${pageContext.request.contextPath}/courses/new" class="btn btn-primary btn-sm" style="width: auto;">发布新课程</a>
                 </div>
                 <c:choose>
@@ -105,6 +105,35 @@
                                             申请人数: <strong>${course.applicantCount}</strong> / ${course.taNeedCount}
                                         </span>
                                         <a href="${pageContext.request.contextPath}/courses/manage?id=${course.id}" class="btn btn-secondary btn-sm">管理申请</a>
+                                    </div>
+                                </div>
+                            </c:forEach>
+                        </div>
+                    </c:otherwise>
+                </c:choose>
+            </div>
+        </c:if>
+
+        <c:if test="${sessionScope.user.role == 'ADMIN'}">
+            <div class="card mb-3">
+                <div class="d-flex justify-between align-center mb-2">
+                    <h3>全部课程</h3>
+                </div>
+                <c:choose>
+                    <c:when test="${empty courses}">
+                        <p class="text-muted">系统中暂无课程。</p>
+                    </c:when>
+                    <c:otherwise>
+                        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1.5rem;">
+                            <c:forEach var="course" items="${courses}">
+                                <div class="card" style="border: 1px solid var(--border-color); padding: 1.5rem;">
+                                    <h4 style="margin-bottom: 0.5rem;">${course.name}</h4>
+                                    <p class="text-muted mb-2">${course.description}</p>
+                                    <div class="d-flex justify-between align-center mt-2">
+                                        <span style="font-size: 0.9rem;">
+                                            申请人数: <strong>${course.applicantCount}</strong> / ${course.taNeedCount}
+                                        </span>
+                                        <span class="text-muted" style="font-size:0.85rem;">仅查看</span>
                                     </div>
                                 </div>
                             </c:forEach>

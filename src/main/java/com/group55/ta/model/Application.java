@@ -1,51 +1,23 @@
 package com.group55.ta.model;
 
-import java.io.Serializable;
+import com.group55.ta.util.DateTimeUtil;
 
 /**
- * Application model representing a student's TA application for a course.
- *
- * <p>CSV format in {@code data/applications.txt}:
- * {@code applicationId,studentUsername,courseId,status,applyTime,statement}</p>
- *
- * @author Group 55
+ * TA application for a course (transition model).
+ * Status stored as string for JSON and JSP EL: PENDING, ACCEPTED, REJECTED.
  */
-public class Application implements Serializable {
-
-    public enum Status { PENDING, APPROVED, REJECTED }
+public class Application {
 
     private String applicationId;
-    private String studentUsername;
+    private String applicantId;
     private String courseId;
-    private Status status;
-    private String applyTime;
+    private String status;
+    private String appliedAt;
     private String statement;
 
-    /** No-arg constructor. */
-    public Application() {
-    }
-
-    /**
-     * Full constructor.
-     *
-     * @param applicationId   the unique application ID
-     * @param studentUsername  the username of the applying student
-     * @param courseId         the ID of the course being applied to
-     * @param status           the current application status
-     * @param applyTime        the timestamp when the application was submitted
-     * @param statement        the student's personal statement
-     */
-    public Application(String applicationId, String studentUsername, String courseId,
-                       Status status, String applyTime, String statement) {
-        this.applicationId = applicationId;
-        this.studentUsername = studentUsername;
-        this.courseId = courseId;
-        this.status = status;
-        this.applyTime = applyTime;
-        this.statement = statement;
-    }
-
-    // ---- Getters & Setters ----
+    private transient String courseName;
+    private transient String teacherName;
+    private transient String applyDate;
 
     public String getApplicationId() {
         return applicationId;
@@ -55,12 +27,20 @@ public class Application implements Serializable {
         this.applicationId = applicationId;
     }
 
+    public String getApplicantId() {
+        return applicantId;
+    }
+
+    public void setApplicantId(String applicantId) {
+        this.applicantId = applicantId;
+    }
+
     public String getStudentUsername() {
-        return studentUsername;
+        return applicantId;
     }
 
     public void setStudentUsername(String studentUsername) {
-        this.studentUsername = studentUsername;
+        this.applicantId = studentUsername;
     }
 
     public String getCourseId() {
@@ -71,20 +51,49 @@ public class Application implements Serializable {
         this.courseId = courseId;
     }
 
-    public Status getStatus() {
+    public String getStatus() {
         return status;
     }
 
-    public void setStatus(Status status) {
+    public void setStatus(String status) {
         this.status = status;
     }
 
+    public void setStatusEnum(Status s) {
+        this.status = s == null ? null : s.name();
+    }
+
+    public Status getStatusEnum() {
+        if (status == null) {
+            return null;
+        }
+        try {
+            return Status.valueOf(status);
+        } catch (IllegalArgumentException e) {
+            return null;
+        }
+    }
+
+    public enum Status {
+        PENDING,
+        ACCEPTED,
+        REJECTED
+    }
+
+    public String getAppliedAt() {
+        return appliedAt;
+    }
+
+    public void setAppliedAt(String appliedAt) {
+        this.appliedAt = appliedAt;
+    }
+
     public String getApplyTime() {
-        return applyTime;
+        return appliedAt;
     }
 
     public void setApplyTime(String applyTime) {
-        this.applyTime = applyTime;
+        this.appliedAt = applyTime;
     }
 
     public String getStatement() {
@@ -95,9 +104,30 @@ public class Application implements Serializable {
         this.statement = statement;
     }
 
-    @Override
-    public String toString() {
-        return "Application{id='" + applicationId + "', student='" + studentUsername +
-               "', course='" + courseId + "', status=" + status + "}";
+    public String getCourseName() {
+        return courseName;
+    }
+
+    public void setCourseName(String courseName) {
+        this.courseName = courseName;
+    }
+
+    public String getTeacherName() {
+        return teacherName;
+    }
+
+    public void setTeacherName(String teacherName) {
+        this.teacherName = teacherName;
+    }
+
+    public String getApplyDate() {
+        if (applyDate != null) {
+            return applyDate;
+        }
+        return DateTimeUtil.formatDateTime(appliedAt);
+    }
+
+    public void setApplyDate(String applyDate) {
+        this.applyDate = applyDate;
     }
 }

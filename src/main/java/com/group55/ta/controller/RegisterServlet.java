@@ -7,7 +7,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import com.group55.ta.dao.UserDao;
-import com.group55.ta.model.User;
+import com.group55.ta.model.Role;
+import com.group55.ta.util.ValidationUtil;
 
 public class RegisterServlet extends BaseServlet {
 
@@ -18,15 +19,14 @@ public class RegisterServlet extends BaseServlet {
 
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        String username = trimToNull(request.getParameter("username"));
         String password = trimToNull(request.getParameter("password"));
         String confirmPassword = trimToNull(request.getParameter("confirmPassword"));
         String email = trimToNull(request.getParameter("email"));
-        String fullName = trimToNull(request.getParameter("fullName"));
-        String role = trimToNull(request.getParameter("role"));
+        String name = trimToNull(request.getParameter("name"));
+        String roleRaw = trimToNull(request.getParameter("role"));
 
-        if (username == null || password == null || confirmPassword == null) {
-            request.setAttribute("errorMessage", "用户名与密码为必填项");
+        if (password == null || confirmPassword == null || email == null || name == null) {
+            request.setAttribute("errorMessage", "姓名、邮箱与密码为必填项");
             forwardToView(request, response, "register");
             return;
         }
@@ -35,25 +35,59 @@ public class RegisterServlet extends BaseServlet {
             forwardToView(request, response, "register");
             return;
         }
-
-        UserDao userDao = new UserDao();
-        if (userDao.findByUsername(username) != null) {
-            request.setAttribute("errorMessage", "用户名已存在");
+        if (!ValidationUtil.isValidEmail(email)) {
+            request.setAttribute("errorMessage", "邮箱格式不正确");
             forwardToView(request, response, "register");
             return;
         }
 
-        // Default role to "Student" if not provided
+        Role role = mapRegistrationRole(roleRaw);
         if (role == null) {
-            role = "Student";
+            request.setAttribute("errorMessage", "请选择有效角色");
+            forwardToView(request, response, "register");
+            return;
         }
-        // Constructor order: username, password, role, fullName, email
-        User user = new User(username, password, role,
-                fullName != null ? fullName : username,
-                email != null ? email : "");
-        userDao.save(user);
+
+        UserDao userDao = new UserDao();
+        if (userDao.findByEmail(email).isPresent()) {
+            request.setAttribute("errorMessage", "该邮箱已注册");
+            request.setAttribute("email", email);
+            request.setAttribute("name", name);
+            request.setAttribute("role", roleRaw);
+            forwardToView(request, response, "register");
+            return;
+        }
+
+        try {
+            userDao.create(name, email, password, role);
+        } catch (IllegalStateException ex) {
+            request.setAttribute("errorMessage", ex.getMessage());
+            request.setAttribute("email", email);
+            request.setAttribute("name", name);
+            forwardToView(request, response, "register");
+            return;
+        }
 
         response.sendRedirect(request.getContextPath() + "/login");
+    }
+
+    /**
+     * Accepts UI values TA/MO/ADMIN or legacy Student/Teacher.
+     */
+    private static Role mapRegistrationRole(String roleRaw) {
+        if (roleRaw == null) {
+            return Role.TA;
+        }
+        if ("Student".equalsIgnoreCase(roleRaw) || "TA".equalsIgnoreCase(roleRaw)) {
+            return Role.TA;
+        }
+        if ("Teacher".equalsIgnoreCase(roleRaw) || "MO".equalsIgnoreCase(roleRaw)) {
+            return Role.MO;
+        }
+        if ("Admin".equalsIgnoreCase(roleRaw) || "ADMIN".equalsIgnoreCase(roleRaw)) {
+            return Role.ADMIN;
+        }
+        return Role.fromString(roleRaw);
     }
 
     private static String trimToNull(String s) {
@@ -64,4 +98,3 @@ public class RegisterServlet extends BaseServlet {
         return t.isEmpty() ? null : t;
     }
 }
-

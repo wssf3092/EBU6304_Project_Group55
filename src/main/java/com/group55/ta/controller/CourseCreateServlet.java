@@ -2,6 +2,7 @@ package com.group55.ta.controller;
 
 import com.group55.ta.dao.CourseDao;
 import com.group55.ta.model.Course;
+import com.group55.ta.model.Role;
 import com.group55.ta.model.User;
 
 import java.io.IOException;
@@ -27,7 +28,9 @@ public class CourseCreateServlet extends BaseServlet {
             response.sendRedirect(request.getContextPath() + "/login");
             return;
         }
-        if (!"TEACHER".equalsIgnoreCase(user.getRole()) && !"Teacher".equals(user.getRole())) {
+        Role roleEnum = user.getRoleEnum();
+        if (roleEnum != Role.MO && !"MO".equalsIgnoreCase(user.getRole())
+                && !"TEACHER".equalsIgnoreCase(user.getRole()) && !"Teacher".equals(user.getRole())) {
             response.sendRedirect(request.getContextPath() + "/dashboard");
             return;
         }
@@ -61,9 +64,9 @@ public class CourseCreateServlet extends BaseServlet {
         }
 
         Course course = new Course();
-        course.setId(UUID.randomUUID().toString().substring(0, 8).toUpperCase());
+        course.setCourseId(UUID.randomUUID().toString().substring(0, 8).toUpperCase());
         course.setName(courseName);
-        course.setTeacherUsername(user.getUsername());
+        course.setTeacher(user.getUserId());
         course.setDescription(description == null ? "" : description);
         course.setTaNeedCount(taNeedCount);
         course.setCurrentTaCount(0);
@@ -82,4 +85,3 @@ public class CourseCreateServlet extends BaseServlet {
         return t.isEmpty() ? null : t;
     }
 }
-

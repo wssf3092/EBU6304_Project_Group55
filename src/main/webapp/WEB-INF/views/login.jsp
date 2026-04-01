@@ -31,8 +31,8 @@
 
             <form action="${pageContext.request.contextPath}/login" method="post">
                 <div class="form-group">
-                    <label for="username" class="form-label">用户名</label>
-                    <input type="text" id="username" name="username" class="form-control" required placeholder="请输入用户名" value="${username}">
+                    <label for="username" class="form-label">邮箱或用户 ID</label>
+                    <input type="text" id="username" name="username" class="form-control" required placeholder="注册邮箱或 TA_001 等" value="${username}">
                 </div>
                 
                 <div class="form-group">

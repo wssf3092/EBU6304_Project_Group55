@@ -1,7 +1,0 @@
-# TA Recruitment System - Users Data File
-# Format: username,password,email,fullName,role
-# Roles: STUDENT | TEACHER | ADMIN
-# ---------------------------------------------------
-admin,admin123,admin@group55.com,System Administrator,Admin
-teacher_wang,teacher123,wang@group55.com,Wang Fang,Teacher
-student_li,student123,li@group55.com,Li Ming,Student

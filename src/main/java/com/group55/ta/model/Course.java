@@ -1,62 +1,37 @@
 package com.group55.ta.model;
 
-import java.io.Serializable;
-
 /**
- * Course model representing a course that requires Teaching Assistants.
- *
- * <p>CSV format in {@code data/courses.txt}:
- * {@code courseId,courseName,teacherUsername,taRequired,description}</p>
- *
- * @author Group 55
+ * Course model (transition; Step 7 replaces with Job).
+ * Persisted as one JSON file per course under {@code data/courses/}.
  */
-public class Course implements Serializable {
-
-    private String id;
+public class Course {
+    private String courseId;
     private String name;
-    private String teacherUsername;
+    /** MO userId who owns this course. */
+    private String teacher;
     private String description;
     private int taNeedCount;
     private int currentTaCount;
 
-    /** No-arg constructor. */
-    public Course() {
+    /** Filled at runtime for JSP; not persisted (Gson skips {@code transient}). */
+    private transient String teacherName;
+    private transient int applicantCount;
+
+    public String getCourseId() {
+        return courseId;
     }
 
-    /**
-     * Full constructor matching test expectations (6 parameters).
-     *
-     * @param id               the unique course ID, e.g. "CS101"
-     * @param name             the course name
-     * @param teacherUsername   the username of the teacher who owns this course
-     * @param description      a short description of the course
-     * @param taNeedCount      how many TAs are needed
-     * @param currentTaCount   how many TAs are currently approved
-     */
-    public Course(String id, String name, String teacherUsername, String description, int taNeedCount, int currentTaCount) {
-        this.id = id;
-        this.name = name;
-        this.teacherUsername = teacherUsername;
-        this.description = description;
-        this.taNeedCount = taNeedCount;
-        this.currentTaCount = currentTaCount;
+    public void setCourseId(String courseId) {
+        this.courseId = courseId;
     }
 
-    /**
-     * 5-parameter constructor (currentTaCount defaults to 0).
-     */
-    public Course(String id, String name, String teacherUsername, String description, int taNeedCount) {
-        this(id, name, teacherUsername, description, taNeedCount, 0);
-    }
-
-    // ---- Getters & Setters ----
-
+    /** Alias for JSPs using {@code course.id}. */
     public String getId() {
-        return id;
+        return courseId;
     }
 
     public void setId(String id) {
-        this.id = id;
+        this.courseId = id;
     }
 
     public String getName() {
@@ -67,12 +42,21 @@ public class Course implements Serializable {
         this.name = name;
     }
 
+    public String getTeacher() {
+        return teacher;
+    }
+
+    public void setTeacher(String teacher) {
+        this.teacher = teacher;
+    }
+
+    /** Legacy accessor for servlets comparing owner. */
     public String getTeacherUsername() {
-        return teacherUsername;
+        return teacher;
     }
 
     public void setTeacherUsername(String teacherUsername) {
-        this.teacherUsername = teacherUsername;
+        this.teacher = teacherUsername;
     }
 
     public String getDescription() {
@@ -99,8 +83,19 @@ public class Course implements Serializable {
         this.currentTaCount = currentTaCount;
     }
 
-    @Override
-    public String toString() {
-        return "Course{id='" + id + "', name='" + name + "', teacher='" + teacherUsername + "'}";
+    public String getTeacherName() {
+        return teacherName;
+    }
+
+    public void setTeacherName(String teacherName) {
+        this.teacherName = teacherName;
+    }
+
+    public int getApplicantCount() {
+        return applicantCount;
+    }
+
+    public void setApplicantCount(int applicantCount) {
+        this.applicantCount = applicantCount;
     }
 }
