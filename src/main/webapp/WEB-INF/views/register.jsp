@@ -27,21 +27,14 @@
                 <div class="form-group">
                     <label for="role" class="form-label">注册角色</label>
                     <select id="role" name="role" class="form-control" required>
-                        <option value="Student" ${role == 'Student' ? 'selected' : ''}>学生 (Student)</option>
-                        <option value="Teacher" ${role == 'Teacher' ? 'selected' : ''}>教师 (Teacher)</option>
+                        <option value="TA" ${role == 'TA' ? 'selected' : ''}>助教申请人 (TA)</option>
+                        <option value="MO" ${role == 'MO' ? 'selected' : ''}>模块负责人 (MO)</option>
                     </select>
                 </div>
 
-                <div class="d-flex gap-2" style="margin-bottom: 0;">
-                    <div class="form-group" style="flex: 1;">
-                        <label for="username" class="form-label">用户名</label>
-                        <input type="text" id="username" name="username" class="form-control" required placeholder="用于登录" value="${username}">
-                    </div>
-                    
-                    <div class="form-group" style="flex: 1;">
-                        <label for="name" class="form-label">真实姓名</label>
-                        <input type="text" id="name" name="name" class="form-control" required placeholder="您的姓名" value="${name}">
-                    </div>
+                <div class="form-group">
+                    <label for="name" class="form-label">真实姓名</label>
+                    <input type="text" id="name" name="name" class="form-control" required placeholder="您的姓名" value="${name}">
                 </div>
                 
                 <div class="form-group">

@@ -14,7 +14,7 @@
         <div class="nav-links">
             <a href="${pageContext.request.contextPath}/dashboard" class="nav-link" data-page="dashboard">首页</a>
             <a href="${pageContext.request.contextPath}/courses" class="nav-link" data-page="courses">课程列表</a>
-            <c:if test="${sessionScope.user.role == 'Student'}">
+            <c:if test="${sessionScope.user.role == 'TA'}">
                 <a href="${pageContext.request.contextPath}/applications" class="nav-link" data-page="applications">我的申请</a>
             </c:if>
         </div>
@@ -45,10 +45,10 @@
                     </div>
                     <p style="flex: 1; margin-bottom: 1.5rem; font-size: 0.95rem;">${course.description}</p>
                     
-                    <c:if test="${sessionScope.user.role == 'Student'}">
+                    <c:if test="${sessionScope.user.role == 'TA'}">
                         <a href="${pageContext.request.contextPath}/apply?courseId=${course.id}" class="btn btn-primary" style="text-align: center;">申请 TA</a>
                     </c:if>
-                    <c:if test="${sessionScope.user.role == 'Teacher'}">
+                    <c:if test="${sessionScope.user.role == 'MO'}">
                         <button class="btn btn-secondary" disabled style="opacity: 0.5; cursor: not-allowed; width: 100%;">教师不可申请</button>
                     </c:if>
                 </div>

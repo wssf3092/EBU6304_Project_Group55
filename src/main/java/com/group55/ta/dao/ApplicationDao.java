@@ -2,180 +2,122 @@ package com.group55.ta.dao;
 
 import com.group55.ta.model.Application;
 import com.group55.ta.model.Application.Status;
-import com.group55.ta.util.FileStorageUtil;
+import com.group55.ta.util.AppPaths;
+import com.group55.ta.util.DateTimeUtil;
+import com.group55.ta.util.JsonFileUtil;
+import com.group55.ta.util.ValidationUtil;
 
-import java.util.ArrayList;
+import java.nio.file.Path;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 /**
- * Data Access Object for {@link Application} entities.
- * Persists application data to a CSV text file.
- *
- * <p>CSV line format: {@code applicationId,studentUsername,courseId,status,applyTime,statement}</p>
- *
- * @author Group 55
+ * Applications as {@code data/applications/{applicationId}.json}.
  */
 public class ApplicationDao {
+    private static final Object LOCK = new Object();
 
-    private static final String DEFAULT_FILE = "data/applications.txt";
-    private final String filePath;
-
-    public ApplicationDao() {
-        this.filePath = DEFAULT_FILE;
-    }
-
-    public ApplicationDao(String filePath) {
-        this.filePath = filePath;
-    }
-
-    /**
-     * Save (append) a new application.
-     *
-     * @return {@code true} if saved successfully, {@code false} otherwise
-     */
-    public boolean save(Application application) {
-        if (application == null || application.getApplicationId() == null) return false;
-
-        String line = toCsvLine(application);
-        String existing = FileStorageUtil.readFile(filePath);
-        if (existing != null && !existing.trim().isEmpty()) {
-            return FileStorageUtil.appendToFile(filePath, "\n" + line);
-        } else {
-            return FileStorageUtil.writeFile(filePath, line);
-        }
-    }
-
-    /**
-     * Find all applications submitted by a specific student.
-     */
-    public List<Application> findByStudentUsername(String username) {
-        List<Application> result = new ArrayList<>();
-        if (username == null) return result;
-        List<Application> all = findAll();
-        for (Application a : all) {
-            if (username.equals(a.getStudentUsername())) {
-                result.add(a);
+    public Application create(String applicantId, String courseId, String statement) {
+        synchronized (LOCK) {
+            if (hasApplied(applicantId, courseId)) {
+                throw new IllegalStateException("Already applied for this course.");
             }
+            Application app = new Application();
+            app.setApplicationId(nextApplicationId());
+            app.setApplicantId(applicantId);
+            app.setCourseId(courseId);
+            app.setStatement(statement);
+            app.setStatusEnum(Status.PENDING);
+            app.setAppliedAt(DateTimeUtil.nowIso());
+            save(app);
+            return app;
         }
-        return result;
     }
 
-    /**
-     * Find all applications for a specific course.
-     */
-    public List<Application> findByCourseId(String courseId) {
-        List<Application> result = new ArrayList<>();
-        if (courseId == null) return result;
-        List<Application> all = findAll();
-        for (Application a : all) {
-            if (courseId.equals(a.getCourseId())) {
-                result.add(a);
+    public void save(Application application) {
+        synchronized (LOCK) {
+            Path file = AppPaths.applications().resolve(application.getApplicationId() + ".json");
+            JsonFileUtil.write(file, application);
+        }
+    }
+
+    public Optional<Application> findById(String applicationId) {
+        synchronized (LOCK) {
+            if (ValidationUtil.isBlank(applicationId)) {
+                return Optional.empty();
             }
+            Path file = AppPaths.applications().resolve(applicationId + ".json");
+            return JsonFileUtil.read(file, Application.class);
         }
-        return result;
     }
 
-    /**
-     * Find a single application by its ID.
-     *
-     * @return the {@link Application} if found, otherwise {@code null}
-     */
-    public Application findById(String applicationId) {
-        if (applicationId == null) return null;
-        List<Application> all = findAll();
-        for (Application a : all) {
-            if (applicationId.equals(a.getApplicationId())) {
-                return a;
-            }
-        }
-        return null;
-    }
-
-    /**
-     * Update the status of an application by its ID.
-     * Reads all lines, replaces the target line, and overwrites the file.
-     */
-    public boolean updateStatus(String applicationId, Status status) {
-        if (applicationId == null || status == null) return false;
-        List<String> lines = FileStorageUtil.readLines(filePath);
-        if (lines == null || lines.isEmpty()) return false;
-
-        boolean found = false;
-        List<String> updatedLines = new ArrayList<>();
-        for (String line : lines) {
-            Application a = fromCsvLine(line);
-            if (a != null && applicationId.equals(a.getApplicationId())) {
-                a.setStatus(status);
-                updatedLines.add(toCsvLine(a));
-                found = true;
-            } else {
-                updatedLines.add(line);
-            }
-        }
-
-        if (!found) return false;
-
-        StringBuilder sb = new StringBuilder();
-        for (int i = 0; i < updatedLines.size(); i++) {
-            if (i > 0) sb.append("\n");
-            sb.append(updatedLines.get(i));
-        }
-        return FileStorageUtil.writeFile(filePath, sb.toString());
-    }
-
-    /**
-     * Return all applications from the data file.
-     */
     public List<Application> findAll() {
-        List<String> lines = FileStorageUtil.readLines(filePath);
-        if (lines == null) return new ArrayList<>();
-        List<Application> apps = new ArrayList<>();
-        for (String line : lines) {
-            Application a = fromCsvLine(line);
-            if (a != null) {
-                apps.add(a);
+        synchronized (LOCK) {
+            List<Application> apps = JsonFileUtil.readAll(AppPaths.applications(), Application.class);
+            apps.sort(Comparator.comparing(Application::getAppliedAt, Comparator.nullsLast(String::compareTo)).reversed());
+            return apps;
+        }
+    }
+
+    public List<Application> findByApplicant(String applicantId) {
+        if (applicantId == null) {
+            return new java.util.ArrayList<>();
+        }
+        return findAll().stream()
+                .filter(a -> applicantId.equals(a.getApplicantId()))
+                .collect(Collectors.toList());
+    }
+
+    /** @deprecated use {@link #findByApplicant(String)} */
+    public List<Application> findByStudentUsername(String username) {
+        return findByApplicant(username);
+    }
+
+    public List<Application> findByCourseId(String courseId) {
+        if (courseId == null) {
+            return new java.util.ArrayList<>();
+        }
+        return findAll().stream()
+                .filter(a -> courseId.equals(a.getCourseId()))
+                .collect(Collectors.toList());
+    }
+
+    public boolean updateStatus(String applicationId, Status status) {
+        synchronized (LOCK) {
+            Optional<Application> opt = findById(applicationId);
+            if (!opt.isPresent()) {
+                return false;
+            }
+            Application app = opt.get();
+            app.setStatusEnum(status);
+            save(app);
+            return true;
+        }
+    }
+
+    public boolean hasApplied(String applicantId, String courseId) {
+        return findAll().stream()
+                .anyMatch(a -> applicantId.equals(a.getApplicantId()) && courseId.equals(a.getCourseId()));
+    }
+
+    private String nextApplicationId() {
+        List<Application> apps = findAll();
+        int max = 0;
+        for (Application app : apps) {
+            if (app.getApplicationId() == null) {
+                continue;
+            }
+            String[] parts = app.getApplicationId().split("_");
+            if (parts.length == 2) {
+                try {
+                    max = Math.max(max, Integer.parseInt(parts[1]));
+                } catch (NumberFormatException ignored) {
+                    // skip
+                }
             }
         }
-        return apps;
-    }
-
-    /**
-     * Clear all data in the file (test utility).
-     */
-    public void clearAll() {
-        FileStorageUtil.writeFile(filePath, "");
-    }
-
-    // ---- CSV helpers ----
-
-    private String toCsvLine(Application app) {
-        return escape(app.getApplicationId()) + "," +
-               escape(app.getStudentUsername()) + "," +
-               escape(app.getCourseId()) + "," +
-               (app.getStatus() == null ? "PENDING" : app.getStatus().name()) + "," +
-               escape(app.getApplyTime()) + "," +
-               escape(app.getStatement());
-    }
-
-    private Application fromCsvLine(String line) {
-        if (line == null || line.trim().isEmpty()) return null;
-        String[] parts = line.split(",", -1);
-        if (parts.length < 6) return null;
-        String applicationId = parts[0].trim();
-        String studentUsername = parts[1].trim();
-        String courseId = parts[2].trim();
-        Status status;
-        try {
-            status = Status.valueOf(parts[3].trim());
-        } catch (IllegalArgumentException e) {
-            status = Status.PENDING;
-        }
-        String applyTime = parts[4].trim();
-        String statement = parts[5].trim();
-        return new Application(applicationId, studentUsername, courseId, status, applyTime, statement);
-    }
-
-    private static String escape(String s) {
-        return s == null ? "" : s;
+        return "APP_" + String.format("%03d", max + 1);
     }
 }

@@ -1,35 +1,28 @@
 package com.group55.ta.controller;
 
 import java.io.IOException;
-import java.lang.reflect.Method;
-import java.util.Collections;
 import java.util.List;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import com.group55.ta.dao.ApplicationDao;
+import com.group55.ta.dao.CourseDao;
+import com.group55.ta.dao.UserDao;
+import com.group55.ta.model.Course;
+import com.group55.ta.util.EntityHydrator;
+
 public class CourseListServlet extends BaseServlet {
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        request.setAttribute("courses", safeFindAllCourses());
+        CourseDao courseDao = new CourseDao();
+        UserDao userDao = new UserDao();
+        ApplicationDao applicationDao = new ApplicationDao();
+        List<Course> courses = courseDao.findAll();
+        EntityHydrator.enrichCourses(courses, userDao, applicationDao);
+        request.setAttribute("courses", courses);
         forwardToView(request, response, "course-list");
     }
-
-    @SuppressWarnings("unchecked")
-    private List<Object> safeFindAllCourses() throws ServletException {
-        try {
-            Class<?> daoClass = Class.forName("com.group55.ta.dao.CourseDao");
-            Object dao = daoClass.getDeclaredConstructor().newInstance();
-            Method findAll = daoClass.getMethod("findAll");
-            Object result = findAll.invoke(dao);
-            return result == null ? Collections.emptyList() : (List<Object>) result;
-        } catch (ClassNotFoundException e) {
-            return Collections.emptyList();
-        } catch (Exception e) {
-            throw new ServletException("加载课程列表失败", e);
-        }
-    }
 }
-

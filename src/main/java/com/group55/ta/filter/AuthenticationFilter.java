@@ -1,7 +1,6 @@
 package com.group55.ta.filter;
 
 import javax.servlet.*;
-import javax.servlet.annotation.WebFilter;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
@@ -9,15 +8,14 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 
+import com.group55.ta.model.Role;
 import com.group55.ta.model.User;
 
 /**
  * Filter to protect authorized routes and validate session status.
  */
-@WebFilter(urlPatterns = {"/dashboard", "/course/*", "/courses", "/courses/*", "/application", "/application/*", "/apply", "/applications"})
 public class AuthenticationFilter implements Filter {
 
-    // Whitelist paths that bypass authentication checks
     private static final List<String> WHITELIST = Arrays.asList(
             "/login",
             "/register",
@@ -35,35 +33,30 @@ public class AuthenticationFilter implements Filter {
         HttpServletRequest req = (HttpServletRequest) request;
         HttpServletResponse res = (HttpServletResponse) response;
 
-        // Secure substring to grab relative path
         String path = req.getRequestURI().substring(req.getContextPath().length());
 
-        // 1. Check whitelist or static resources
         if (WHITELIST.contains(path) || path.startsWith("/static/") || path.equals("/")) {
             chain.doFilter(request, response);
             return;
         }
 
-        // 2. Validate current session and user object
         HttpSession session = req.getSession(false);
         boolean loggedIn = (session != null && session.getAttribute("user") != null);
 
         if (loggedIn) {
-            // Role-based access control
             User user = (User) session.getAttribute("user");
+            Role roleEnum = user != null ? user.getRoleEnum() : null;
             String role = (user != null && user.getRole() != null) ? user.getRole() : "";
 
-            // Teacher-only paths
             if (path.startsWith("/courses/manage") || path.startsWith("/courses/new")) {
-                if (!"TEACHER".equalsIgnoreCase(role) && !"Teacher".equals(role)) {
+                if (!isMo(roleEnum, role)) {
                     res.sendRedirect(req.getContextPath() + "/dashboard");
                     return;
                 }
             }
 
-            // Student-only paths
             if (path.equals("/apply") || path.startsWith("/apply")) {
-                if (!"STUDENT".equalsIgnoreCase(role) && !"Student".equals(role)) {
+                if (!isTa(roleEnum, role)) {
                     res.sendRedirect(req.getContextPath() + "/dashboard");
                     return;
                 }
@@ -71,9 +64,22 @@ public class AuthenticationFilter implements Filter {
 
             chain.doFilter(request, response);
         } else {
-            // Unauthenticated request, redirect to login page
             res.sendRedirect(req.getContextPath() + "/login");
         }
+    }
+
+    private static boolean isMo(Role roleEnum, String role) {
+        return roleEnum == Role.MO
+                || "MO".equalsIgnoreCase(role)
+                || "TEACHER".equalsIgnoreCase(role)
+                || "Teacher".equals(role);
+    }
+
+    private static boolean isTa(Role roleEnum, String role) {
+        return roleEnum == Role.TA
+                || "TA".equalsIgnoreCase(role)
+                || "STUDENT".equalsIgnoreCase(role)
+                || "Student".equals(role);
     }
 
     @Override
