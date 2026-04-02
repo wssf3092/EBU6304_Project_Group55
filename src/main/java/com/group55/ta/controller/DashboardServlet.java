@@ -1,13 +1,10 @@
 package com.group55.ta.controller;
 
-import com.group55.ta.dao.ApplicationDao;
-import com.group55.ta.dao.CourseDao;
-import com.group55.ta.dao.UserDao;
 import com.group55.ta.model.Application;
 import com.group55.ta.model.Course;
 import com.group55.ta.model.Role;
 import com.group55.ta.model.User;
-import com.group55.ta.util.EntityHydrator;
+import com.group55.ta.service.RecruitmentService;
 
 import java.io.IOException;
 import java.util.List;
@@ -28,21 +25,16 @@ public class DashboardServlet extends BaseServlet {
         if (user != null) {
             Role roleEnum = user.getRoleEnum();
             String role = user.getRole();
-            UserDao userDao = new UserDao();
-            CourseDao courseDao = new CourseDao();
-            ApplicationDao applicationDao = new ApplicationDao();
+            RecruitmentService recruitmentService = new RecruitmentService();
 
             if (roleEnum == Role.TA || "TA".equalsIgnoreCase(role) || "Student".equalsIgnoreCase(role)) {
-                List<Application> apps = applicationDao.findByApplicant(user.getUserId());
-                EntityHydrator.enrichApplications(apps, courseDao, userDao);
+                List<Application> apps = recruitmentService.listApplicationsEnrichedForApplicant(user.getUserId());
                 request.setAttribute("applications", apps);
             } else if (roleEnum == Role.MO || "MO".equalsIgnoreCase(role) || "TEACHER".equalsIgnoreCase(role) || "Teacher".equals(role)) {
-                List<Course> courses = courseDao.findByTeacher(user.getUserId());
-                EntityHydrator.enrichCourses(courses, userDao, applicationDao);
+                List<Course> courses = recruitmentService.listCoursesEnrichedForMo(user.getUserId());
                 request.setAttribute("courses", courses);
             } else if (roleEnum == Role.ADMIN || "ADMIN".equalsIgnoreCase(role) || "Admin".equals(role)) {
-                List<Course> courses = courseDao.findAll();
-                EntityHydrator.enrichCourses(courses, userDao, applicationDao);
+                List<Course> courses = recruitmentService.listAllCoursesEnrichedForAdmin();
                 request.setAttribute("courses", courses);
             }
         }

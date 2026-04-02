@@ -19,30 +19,6 @@ import java.util.Optional;
 public class UserDao {
     private static final Object LOCK = new Object();
 
-    /**
-     * Step 2: plain-text compare on {@code passwordHash} until Step 3 hashing.
-     */
-    public Optional<User> authenticate(String emailOrId, String password) {
-        if (ValidationUtil.isBlank(emailOrId) || password == null) {
-            return Optional.empty();
-        }
-        Optional<User> user = findByEmail(emailOrId);
-        if (!user.isPresent()) {
-            user = findById(emailOrId.trim());
-        }
-        if (!user.isPresent()) {
-            return Optional.empty();
-        }
-        User u = user.get();
-        if (!u.isActive()) {
-            return Optional.empty();
-        }
-        if (!password.equals(u.getPasswordHash())) {
-            return Optional.empty();
-        }
-        return Optional.of(u);
-    }
-
     public Optional<User> findByEmail(String email) {
         String normalized = ValidationUtil.normalizeEmail(email);
         return listAll().stream()

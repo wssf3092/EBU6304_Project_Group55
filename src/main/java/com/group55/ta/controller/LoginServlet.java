@@ -1,15 +1,14 @@
 package com.group55.ta.controller;
 
 import java.io.IOException;
-import java.util.Optional;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-import com.group55.ta.dao.UserDao;
 import com.group55.ta.model.User;
+import com.group55.ta.service.AuthService;
 
 public class LoginServlet extends BaseServlet {
 
@@ -29,16 +28,21 @@ public class LoginServlet extends BaseServlet {
             return;
         }
 
-        UserDao userDao = new UserDao();
-        Optional<User> opt = userDao.authenticate(identifier, password);
-        if (!opt.isPresent()) {
-            request.setAttribute("errorMessage", "邮箱或密码错误");
+        AuthService authService = new AuthService();
+        User user;
+        try {
+            user = authService.authenticate(identifier, password);
+        } catch (IllegalArgumentException ex) {
+            request.setAttribute("errorMessage", ex.getMessage());
+            request.setAttribute("username", identifier);
+            forwardToView(request, response, "login");
+            return;
+        } catch (IllegalStateException ex) {
+            request.setAttribute("errorMessage", ex.getMessage());
             request.setAttribute("username", identifier);
             forwardToView(request, response, "login");
             return;
         }
-
-        User user = opt.get();
         HttpSession session = request.getSession(true);
         session.setAttribute("user", user);
 

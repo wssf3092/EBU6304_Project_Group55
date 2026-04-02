@@ -7,10 +7,9 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-import com.group55.ta.dao.ApplicationDao;
-import com.group55.ta.dao.CourseDao;
 import com.group55.ta.model.Course;
 import com.group55.ta.model.User;
+import com.group55.ta.service.RecruitmentService;
 
 public class ApplicationServlet extends BaseServlet {
 
@@ -18,8 +17,8 @@ public class ApplicationServlet extends BaseServlet {
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         String courseId = trimToNull(request.getParameter("courseId"));
         if (courseId != null) {
-            CourseDao courseDao = new CourseDao();
-            Course course = courseDao.findById(courseId);
+            RecruitmentService recruitmentService = new RecruitmentService();
+            Course course = recruitmentService.findCourse(courseId);
             request.setAttribute("course", course);
             request.setAttribute("targetCourse", course);
             request.setAttribute("courseId", courseId);
@@ -41,20 +40,19 @@ public class ApplicationServlet extends BaseServlet {
         if (courseId == null || statement == null) {
             request.setAttribute("errorMessage", "课程与申请陈述不能为空");
             request.setAttribute("courseId", courseId);
-            CourseDao courseDao = new CourseDao();
-            Course course = courseDao.findById(courseId);
-            request.setAttribute("targetCourse", course);
+            RecruitmentService recruitmentService = new RecruitmentService();
+            request.setAttribute("targetCourse", recruitmentService.findCourse(courseId));
             forwardToView(request, response, "apply");
             return;
         }
 
         try {
-            ApplicationDao dao = new ApplicationDao();
-            dao.create(user.getUserId(), courseId, statement);
-        } catch (IllegalStateException ex) {
+            RecruitmentService recruitmentService = new RecruitmentService();
+            recruitmentService.applyForCourse(user.getUserId(), courseId, statement);
+        } catch (IllegalArgumentException | IllegalStateException ex) {
             request.setAttribute("errorMessage", ex.getMessage());
-            CourseDao courseDao = new CourseDao();
-            request.setAttribute("targetCourse", courseDao.findById(courseId));
+            RecruitmentService recruitmentService = new RecruitmentService();
+            request.setAttribute("targetCourse", recruitmentService.findCourse(courseId));
             forwardToView(request, response, "apply");
             return;
         }

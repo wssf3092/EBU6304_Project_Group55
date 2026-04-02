@@ -2,10 +2,13 @@ package com.group55.ta.dao;
 
 import com.group55.ta.model.Role;
 import com.group55.ta.model.User;
-import org.junit.jupiter.api.AfterEach;
+import com.group55.ta.util.AppPaths;
+import com.group55.ta.util.PasswordUtil;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
+import java.nio.file.Path;
 import java.util.List;
 import java.util.Optional;
 
@@ -16,61 +19,59 @@ import static org.junit.jupiter.api.Assertions.*;
  */
 class UserDaoTest {
 
+    @TempDir
+    Path tempDir;
+
     private UserDao userDao;
 
     @BeforeEach
     void setUp() {
-        userDao = new UserDao("data/test_users.txt");
-        userDao.clearAll();
-    }
-
-    @AfterEach
-    void tearDown() {
-        userDao.clearAll();
+        AppPaths.overrideDataRoot(tempDir);
+        userDao = new UserDao();
     }
 
     @Test
-    void testSaveAndFindByUsername() {
-        User user = new User("teststudent", "password123", "Student", "Test Student", "test@university.edu");
+    void createFindByEmailAndId() {
+        User u = userDao.create("Alice", "Alice@Example.COM", PasswordUtil.hash("secret12"), Role.TA);
 
-        boolean saveResult = userDao.save(user);
-        assertTrue(saveResult, "User should be saved successfully");
+        assertNotNull(u.getUserId());
+        assertTrue(u.getUserId().startsWith("TA_"));
+        assertEquals("alice@example.com", u.getEmail());
 
-        User retrievedUser = userDao.findByUsername("teststudent");
-        assertNotNull(retrievedUser, "Should find the user uniquely by username");
-        assertEquals("teststudent", retrievedUser.getUsername(), "Usernames should exactly match");
-        assertEquals("Student", retrievedUser.getRole(), "Stored roles should match");
+        Optional<User> byEmail = userDao.findByEmail("ALICE@example.com");
+        assertTrue(byEmail.isPresent());
+        assertEquals(u.getUserId(), byEmail.get().getUserId());
+
+        Optional<User> byId = userDao.findById(u.getUserId());
+        assertTrue(byId.isPresent());
+        assertEquals("Alice", byId.get().getName());
     }
 
     @Test
-    void testAuthenticateSuccess() {
-        User user = new User("authuser", "correctpass", "Teacher", "Auth Teacher", "auth@university.edu");
-        userDao.save(user);
-
-        User authenticatedUser = userDao.authenticate("authuser", "correctpass");
-        assertNotNull(authenticatedUser, "Authentication should yield user object with correct credentials");
-        assertEquals("authuser", authenticatedUser.getUsername());
+    void duplicateEmailOnCreate() {
+        userDao.create("A", "dup@test.edu", "h", Role.TA);
+        assertThrows(IllegalStateException.class, () -> userDao.create("B", "dup@test.edu", "h2", Role.MO));
     }
 
     @Test
-    void testAuthenticateFailure() {
-        User user = new User("failuser", "correctpass", "Student", "Fail Student", "fail@university.edu");
-        userDao.save(user);
+    void listAllAndUpdate() {
+        userDao.create("One", "o1@test.edu", "x", Role.TA);
+        userDao.create("Two", "o2@test.edu", "y", Role.MO);
 
-        User wrongPassUser = userDao.authenticate("failuser", "wrongpass");
-        assertNull(wrongPassUser, "Authentication should prevent access with incorrect password");
+        List<User> all = userDao.listAll();
+        assertEquals(2, all.size());
 
-        User nonExistent = userDao.authenticate("nobody", "pass");
-        assertNull(nonExistent, "Authentication should fail entirely for a non-existent account");
+        User first = userDao.findByEmail("o1@test.edu").orElseThrow();
+        first.setName("OneRenamed");
+        userDao.update(first);
+
+        assertEquals("OneRenamed", userDao.findById(first.getUserId()).orElseThrow().getName());
     }
 
     @Test
-    void testFindAll() {
-        userDao.save(new User("user1", "pass1", "Student", "Name1", "email1"));
-        userDao.save(new User("user2", "pass2", "Teacher", "Name2", "email2"));
-
-        List<User> users = userDao.findAll();
-        assertNotNull(users, "User list should not be null");
-        assertEquals(2, users.size(), "Should retrieve correctly 2 seeded users");
+    void setActive() {
+        User u = userDao.create("X", "x@test.edu", "h", Role.ADMIN);
+        assertTrue(userDao.setActive(u.getUserId(), false));
+        assertFalse(userDao.findById(u.getUserId()).orElseThrow().isActive());
     }
 }
