@@ -1,15 +1,17 @@
 package com.group55.ta.controller;
 
+import com.group55.ta.model.Role;
+
 import java.io.IOException;
 
 import javax.servlet.ServletException;
+import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import com.group55.ta.dao.UserDao;
-import com.group55.ta.model.Role;
 import com.group55.ta.util.ValidationUtil;
 
+@WebServlet("/auth/register")
 public class RegisterServlet extends BaseServlet {
 
     @Override
@@ -48,9 +50,17 @@ public class RegisterServlet extends BaseServlet {
             return;
         }
 
-        UserDao userDao = new UserDao();
-        if (userDao.findByEmail(email).isPresent()) {
-            request.setAttribute("errorMessage", "该邮箱已注册");
+        try {
+            authService.register(name, email, password, role);
+        } catch (IllegalArgumentException ex) {
+            request.setAttribute("errorMessage", ex.getMessage());
+            request.setAttribute("email", email);
+            request.setAttribute("name", name);
+            request.setAttribute("role", roleRaw);
+            forwardToView(request, response, "register");
+            return;
+        } catch (IllegalStateException ex) {
+            request.setAttribute("errorMessage", ex.getMessage());
             request.setAttribute("email", email);
             request.setAttribute("name", name);
             request.setAttribute("role", roleRaw);
@@ -58,22 +68,9 @@ public class RegisterServlet extends BaseServlet {
             return;
         }
 
-        try {
-            userDao.create(name, email, password, role);
-        } catch (IllegalStateException ex) {
-            request.setAttribute("errorMessage", ex.getMessage());
-            request.setAttribute("email", email);
-            request.setAttribute("name", name);
-            forwardToView(request, response, "register");
-            return;
-        }
-
-        response.sendRedirect(request.getContextPath() + "/login");
+        redirect(request, response, "/auth/login");
     }
 
-    /**
-     * Accepts UI values TA/MO/ADMIN or legacy Student/Teacher.
-     */
     private static Role mapRegistrationRole(String roleRaw) {
         if (roleRaw == null) {
             return Role.TA;

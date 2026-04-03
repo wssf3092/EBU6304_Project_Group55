@@ -13,78 +13,56 @@
         <a href="${pageContext.request.contextPath}/" class="nav-brand">TA System</a>
     </nav>
 
-    <div class="auth-container">
-        <div class="auth-card" style="max-width: 550px;">
-            <h2>创建新账户</h2>
-            
+    <div class="container" style="max-width: 520px; margin-top: 2rem;">
+        <div class="card">
+            <h2 class="mb-2">注册</h2>
+
             <c:if test="${not empty errorMessage}">
-                <div class="alert alert-error">
-                    ${errorMessage}
-                </div>
+                <div class="alert alert-error">${errorMessage}</div>
             </c:if>
 
-            <form action="${pageContext.request.contextPath}/register" method="post" id="registerForm" onsubmit="return validateRegisterForm()">
+            <form action="${pageContext.request.contextPath}/auth/register" method="post" id="registerForm" onsubmit="return validateRegisterForm()">
                 <div class="form-group">
-                    <label for="role" class="form-label">注册角色</label>
-                    <select id="role" name="role" class="form-control" required>
-                        <option value="TA" ${role == 'TA' ? 'selected' : ''}>助教申请人 (TA)</option>
-                        <option value="MO" ${role == 'MO' ? 'selected' : ''}>模块负责人 (MO)</option>
+                    <label for="name">姓名</label>
+                    <input type="text" id="name" name="name" class="form-control" value="${name}" required>
+                </div>
+                <div class="form-group">
+                    <label for="email">邮箱</label>
+                    <input type="email" id="email" name="email" class="form-control" value="${email}" required>
+                </div>
+                <div class="form-group">
+                    <label for="role">角色</label>
+                    <select id="role" name="role" class="form-control">
+                        <option value="TA" ${role == 'TA' ? 'selected' : ''}>TA（学生）</option>
+                        <option value="MO" ${role == 'MO' ? 'selected' : ''}>MO（教师）</option>
+                        <option value="ADMIN" ${role == 'ADMIN' ? 'selected' : ''}>管理员</option>
                     </select>
                 </div>
-
                 <div class="form-group">
-                    <label for="name" class="form-label">真实姓名</label>
-                    <input type="text" id="name" name="name" class="form-control" required placeholder="您的姓名" value="${name}">
+                    <label for="password">密码</label>
+                    <input type="password" id="password" name="password" class="form-control" required minlength="6">
                 </div>
-                
                 <div class="form-group">
-                    <label for="email" class="form-label">电子邮箱</label>
-                    <input type="email" id="email" name="email" class="form-control" required placeholder="example@university.edu" value="${email}">
+                    <label for="confirmPassword">确认密码</label>
+                    <input type="password" id="confirmPassword" name="confirmPassword" class="form-control" required>
                 </div>
-                
-                <div class="d-flex gap-2" style="margin-bottom: 0;">
-                    <div class="form-group" style="flex: 1;">
-                        <label for="password" class="form-label">密码</label>
-                        <input type="password" id="password" name="password" class="form-control" required placeholder="设置密码">
-                    </div>
-                    
-                    <div class="form-group" style="flex: 1;">
-                        <label for="confirmPassword" class="form-label">确认密码</label>
-                        <input type="password" id="confirmPassword" name="confirmPassword" class="form-control" required placeholder="再次输入密码">
-                    </div>
-                </div>
-                
-                <!-- Client-side error message placeholder -->
-                <div id="jsErrorMsg" class="alert alert-error" style="display: none; padding: 0.5rem; margin-top: -0.5rem; margin-bottom: 1rem;"></div>
-                
-                <button type="submit" class="btn btn-primary mt-2">注 册</button>
+                <button type="submit" class="btn btn-primary" style="width: 100%;">注册</button>
             </form>
-            
-            <div class="auth-links">
-                已有账户？ <a href="${pageContext.request.contextPath}/login">去登录</a>
-            </div>
+
+            <p class="mt-3 text-muted" style="text-align: center;">
+                已有账户？ <a href="${pageContext.request.contextPath}/auth/login">去登录</a>
+            </p>
         </div>
     </div>
 
     <script>
         function validateRegisterForm() {
-            var password = document.getElementById("password").value;
-            var confirmPassword = document.getElementById("confirmPassword").value;
-            var jsErrorMsg = document.getElementById("jsErrorMsg");
-            
-            if (password !== confirmPassword) {
-                jsErrorMsg.innerText = "两次输入的密码不一致！";
-                jsErrorMsg.style.display = "block";
+            var p = document.getElementById('password').value;
+            var c = document.getElementById('confirmPassword').value;
+            if (p !== c) {
+                alert('两次输入的密码不一致');
                 return false;
             }
-            
-            if (password.length < 6) {
-                jsErrorMsg.innerText = "密码长度至少需要6位！";
-                jsErrorMsg.style.display = "block";
-                return false;
-            }
-            
-            jsErrorMsg.style.display = "none";
             return true;
         }
     </script>

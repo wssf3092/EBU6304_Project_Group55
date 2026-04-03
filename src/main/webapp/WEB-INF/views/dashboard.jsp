@@ -10,18 +10,26 @@
 </head>
 <body>
     <nav class="navbar">
-        <a href="${pageContext.request.contextPath}/dashboard" class="nav-brand">TA System</a>
+        <a href="${pageContext.request.contextPath}${rolePrefix}/dashboard" class="nav-brand">TA System</a>
         <div class="nav-links">
-            <a href="${pageContext.request.contextPath}/dashboard" class="nav-link" data-page="dashboard">首页</a>
-            <a href="${pageContext.request.contextPath}/courses" class="nav-link" data-page="courses">课程列表</a>
-            <c:if test="${sessionScope.user.role == 'TA'}">
-                <a href="${pageContext.request.contextPath}/applications" class="nav-link" data-page="applications">我的申请</a>
-            </c:if>
+            <a href="${pageContext.request.contextPath}${rolePrefix}/dashboard" class="nav-link" data-page="dashboard">首页</a>
+            <c:choose>
+                <c:when test="${dashboardMode == 'ta'}">
+                    <a href="${pageContext.request.contextPath}/ta/courses" class="nav-link" data-page="courses">课程列表</a>
+                    <a href="${pageContext.request.contextPath}/ta/dashboard" class="nav-link" data-page="applications">我的申请</a>
+                </c:when>
+                <c:when test="${dashboardMode == 'mo'}">
+                    <a href="${pageContext.request.contextPath}/mo/dashboard" class="nav-link" data-page="courses">我的课程</a>
+                </c:when>
+                <c:when test="${dashboardMode == 'admin'}">
+                    <a href="${pageContext.request.contextPath}/admin/dashboard" class="nav-link" data-page="courses">全部课程</a>
+                </c:when>
+            </c:choose>
         </div>
         <div class="nav-user">
-            <span class="user-badge">${sessionScope.user.role == 'MO' ? 'MO' : sessionScope.user.role == 'ADMIN' ? '管理员' : 'TA'}</span>
-            <span>欢迎, ${sessionScope.user.name}</span>
-            <a href="${pageContext.request.contextPath}/logout" class="btn btn-secondary btn-sm" onclick="return confirmAction('确定要注销登录吗？')">登出</a>
+            <span class="user-badge">${currentUser.navBadge}</span>
+            <span>欢迎, ${currentUser.name}</span>
+            <a href="${pageContext.request.contextPath}/auth/logout" class="btn btn-secondary btn-sm" onclick="return confirmAction('确定要注销登录吗？')">登出</a>
         </div>
     </nav>
 
@@ -37,13 +45,12 @@
             <div class="alert alert-success">${successMessage}</div>
         </c:if>
 
-        <!-- TA View -->
-        <c:if test="${sessionScope.user.role == 'TA'}">
+        <c:if test="${dashboardMode == 'ta'}">
             <div class="card mb-3">
                 <h3 class="mb-2">我的申请记录</h3>
                 <c:choose>
                     <c:when test="${empty applications}">
-                        <p class="text-muted">暂无申请记录，快去<a href="${pageContext.request.contextPath}/courses">申请一门课程</a>吧！</p>
+                        <p class="text-muted">暂无申请记录，快去<a href="${pageContext.request.contextPath}/ta/courses">申请一门课程</a>吧！</p>
                     </c:when>
                     <c:otherwise>
                         <table style="width: 100%; border-collapse: collapse;">
@@ -83,12 +90,11 @@
             </div>
         </c:if>
 
-        <!-- MO / Admin course overview -->
-        <c:if test="${sessionScope.user.role == 'MO'}">
+        <c:if test="${dashboardMode == 'mo'}">
             <div class="card mb-3">
                 <div class="d-flex justify-between align-center mb-2">
                     <h3>我创建的课程</h3>
-                    <a href="${pageContext.request.contextPath}/courses/new" class="btn btn-primary btn-sm" style="width: auto;">发布新课程</a>
+                    <a href="${pageContext.request.contextPath}/mo/courses/new" class="btn btn-primary btn-sm" style="width: auto;">发布新课程</a>
                 </div>
                 <c:choose>
                     <c:when test="${empty courses}">
@@ -104,7 +110,7 @@
                                         <span style="font-size: 0.9rem;">
                                             申请人数: <strong>${course.applicantCount}</strong> / ${course.taNeedCount}
                                         </span>
-                                        <a href="${pageContext.request.contextPath}/courses/manage?id=${course.id}" class="btn btn-secondary btn-sm">管理申请</a>
+                                        <a href="${pageContext.request.contextPath}/mo/courses/manage?id=${course.id}" class="btn btn-secondary btn-sm">管理申请</a>
                                     </div>
                                 </div>
                             </c:forEach>
@@ -114,7 +120,7 @@
             </div>
         </c:if>
 
-        <c:if test="${sessionScope.user.role == 'ADMIN'}">
+        <c:if test="${dashboardMode == 'admin'}">
             <div class="card mb-3">
                 <div class="d-flex justify-between align-center mb-2">
                     <h3>全部课程</h3>

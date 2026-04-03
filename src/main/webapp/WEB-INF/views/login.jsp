@@ -13,39 +13,30 @@
         <a href="${pageContext.request.contextPath}/" class="nav-brand">TA System</a>
     </nav>
 
-    <div class="auth-container">
-        <div class="auth-card">
-            <h2>欢迎登录</h2>
-            
+    <div class="container" style="max-width: 480px; margin-top: 3rem;">
+        <div class="card">
+            <h2 class="mb-2">登录</h2>
+            <p class="text-muted mb-3">使用邮箱或用户 ID 登录</p>
+
             <c:if test="${not empty errorMessage}">
-                <div class="alert alert-error">
-                    ${errorMessage}
-                </div>
-            </c:if>
-            
-            <c:if test="${not empty successMessage}">
-                <div class="alert alert-success">
-                    ${successMessage}
-                </div>
+                <div class="alert alert-error">${errorMessage}</div>
             </c:if>
 
-            <form action="${pageContext.request.contextPath}/login" method="post">
+            <form action="${pageContext.request.contextPath}/auth/login" method="post">
                 <div class="form-group">
-                    <label for="username" class="form-label">邮箱或用户 ID</label>
-                    <input type="text" id="username" name="username" class="form-control" required placeholder="注册邮箱或 TA_001 等" value="${username}">
+                    <label for="username">邮箱 / 用户 ID</label>
+                    <input type="text" id="username" name="username" class="form-control" value="${username}" required>
                 </div>
-                
                 <div class="form-group">
-                    <label for="password" class="form-label">密码</label>
-                    <input type="password" id="password" name="password" class="form-control" required placeholder="请输入密码">
+                    <label for="password">密码</label>
+                    <input type="password" id="password" name="password" class="form-control" required>
                 </div>
-                
-                <button type="submit" class="btn btn-primary mt-2">登 录</button>
+                <button type="submit" class="btn btn-primary" style="width: 100%;">登录</button>
             </form>
-            
-            <div class="auth-links">
-                没有账户？ <a href="${pageContext.request.contextPath}/register">去注册</a>
-            </div>
+
+            <p class="mt-3 text-muted" style="text-align: center;">
+                没有账户？ <a href="${pageContext.request.contextPath}/auth/register">去注册</a>
+            </p>
         </div>
     </div>
 </body>

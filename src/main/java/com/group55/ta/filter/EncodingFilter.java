@@ -1,14 +1,12 @@
 package com.group55.ta.filter;
 
 import javax.servlet.*;
-import javax.servlet.annotation.WebFilter;
 import java.io.IOException;
 
 /**
  * Filter to enforce UTF-8 encoding to solve garbled character issues.
- * Applies to all requests.
+ * Applies to all requests. Mapped in {@code web.xml} (Step 4).
  */
-@WebFilter("/*")
 public class EncodingFilter implements Filter {
 
     @Override
