@@ -9,6 +9,8 @@ import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import com.group55.ta.model.Role;
+import com.group55.ta.service.AuthService;
 import com.group55.ta.util.ValidationUtil;
 
 @WebServlet("/auth/register")
@@ -50,6 +52,7 @@ public class RegisterServlet extends BaseServlet {
             return;
         }
 
+        AuthService authService = new AuthService();
         try {
             authService.register(name, email, password, role);
         } catch (IllegalArgumentException ex) {
@@ -68,7 +71,7 @@ public class RegisterServlet extends BaseServlet {
             return;
         }
 
-        redirect(request, response, "/auth/login");
+        response.sendRedirect(request.getContextPath() + "/login");
     }
 
     private static Role mapRegistrationRole(String roleRaw) {

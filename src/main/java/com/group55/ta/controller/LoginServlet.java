@@ -1,6 +1,14 @@
 package com.group55.ta.controller;
 
+import java.io.IOException;
+
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
+
 import com.group55.ta.model.User;
+import com.group55.ta.service.AuthService;
 
 import java.io.IOException;
 
@@ -32,19 +40,25 @@ public class LoginServlet extends BaseServlet {
             return;
         }
 
+        AuthService authService = new AuthService();
+        User user;
         try {
-            User user = authService.authenticate(identifier, password);
-            signIn(request, user);
-            redirect(request, response, homePathFor(user));
+            user = authService.authenticate(identifier, password);
         } catch (IllegalArgumentException ex) {
             request.setAttribute("errorMessage", ex.getMessage());
             request.setAttribute("username", identifier);
             forwardToView(request, response, "login");
+            return;
         } catch (IllegalStateException ex) {
             request.setAttribute("errorMessage", ex.getMessage());
             request.setAttribute("username", identifier);
             forwardToView(request, response, "login");
         }
+        HttpSession session = request.getSession(true);
+        session.setAttribute("user", user);
+
+        // Step 4 起使用 Role.homePath；Step 2 仍统一进入 /dashboard
+        response.sendRedirect(request.getContextPath() + "/dashboard");
     }
 
     private static String trimToNull(String s) {

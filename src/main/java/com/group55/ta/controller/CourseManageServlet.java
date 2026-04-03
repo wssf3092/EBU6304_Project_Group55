@@ -4,6 +4,8 @@ import com.group55.ta.model.Application;
 import com.group55.ta.model.Course;
 import com.group55.ta.model.Role;
 import com.group55.ta.model.User;
+import com.group55.ta.service.RecruitmentService;
+
 import java.io.IOException;
 import java.util.List;
 
@@ -31,6 +33,7 @@ public class CourseManageServlet extends BaseServlet {
             return;
         }
 
+        RecruitmentService recruitmentService = new RecruitmentService();
         Course course = recruitmentService.findCourse(courseId);
         if (course == null) {
             redirect(request, response, "/mo/dashboard");
@@ -43,7 +46,6 @@ public class CourseManageServlet extends BaseServlet {
             return;
         }
 
-        request.setAttribute("rolePrefix", "/mo");
         List<Application> applications = recruitmentService.listApplicationsForCourse(courseId);
         request.setAttribute("course", course);
         request.setAttribute("applications", applications);
@@ -80,6 +82,7 @@ public class CourseManageServlet extends BaseServlet {
             return;
         }
 
+        RecruitmentService recruitmentService = new RecruitmentService();
         Course course = recruitmentService.findCourse(courseId);
         if (course == null || !isMoOwner(user, course)) {
             session.setAttribute("errorMessage", "无权限管理该课程");
@@ -87,7 +90,7 @@ public class CourseManageServlet extends BaseServlet {
             return;
         }
 
-        if ("accept".equalsIgnoreCase(action)) {
+        if ("approve".equalsIgnoreCase(action)) {
             try {
                 recruitmentService.reviewCourseApplication(user, courseId, applicationId, true);
                 session.setAttribute("successMessage", "申请已通过");
@@ -112,9 +115,12 @@ public class CourseManageServlet extends BaseServlet {
         if (user == null || course == null) {
             return false;
         }
-        return user.getRoleEnum() == Role.MO
-                && user.getUserId() != null
-                && user.getUserId().equals(course.getTeacher());
+        Role roleEnum = user.getRoleEnum();
+        boolean isMo = roleEnum == Role.MO
+                || "MO".equalsIgnoreCase(user.getRole())
+                || "TEACHER".equalsIgnoreCase(user.getRole())
+                || "Teacher".equals(user.getRole());
+        return isMo && user.getUserId() != null && user.getUserId().equals(course.getTeacher());
     }
 
     private static String trimToNull(String s) {

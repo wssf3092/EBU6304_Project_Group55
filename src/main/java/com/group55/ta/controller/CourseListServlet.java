@@ -10,15 +10,14 @@ import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-/**
- * TA browses all courses (Step 4: replaces legacy {@code /courses}).
- */
-@WebServlet("/ta/courses")
-public class TACoursesServlet extends BaseServlet {
+import com.group55.ta.model.Course;
+import com.group55.ta.service.RecruitmentService;
+
+public class CourseListServlet extends BaseServlet {
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        request.setAttribute("rolePrefix", "/ta");
+        RecruitmentService recruitmentService = new RecruitmentService();
         List<Course> courses = recruitmentService.listAllCoursesEnriched();
         request.setAttribute("courses", courses);
         forwardToView(request, response, "course-list");
