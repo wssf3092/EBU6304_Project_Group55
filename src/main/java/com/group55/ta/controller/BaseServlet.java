@@ -4,6 +4,7 @@ import com.group55.ta.model.Role;
 import com.group55.ta.model.User;
 import com.group55.ta.service.AuthService;
 import com.group55.ta.service.RecruitmentService;
+import com.group55.ta.util.FlashUtil;
 import com.group55.ta.util.GsonProvider;
 
 import java.io.IOException;
@@ -42,6 +43,7 @@ public abstract class BaseServlet extends HttpServlet {
 
     protected void forwardToView(HttpServletRequest request, HttpServletResponse response, String viewName)
             throws ServletException, IOException {
+        FlashUtil.expose(request);
         String name = viewName;
         if (!name.endsWith(".jsp")) {
             name = name + ".jsp";

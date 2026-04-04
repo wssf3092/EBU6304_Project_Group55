@@ -1,6 +1,6 @@
 package com.group55.ta.controller;
 
-import com.group55.ta.model.Course;
+import com.group55.ta.model.Application;
 import com.group55.ta.model.User;
 
 import java.io.IOException;
@@ -11,16 +11,16 @@ import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-@WebServlet("/mo/dashboard")
-public class MODashboardServlet extends BaseServlet {
+@WebServlet("/ta/applications")
+public class TAApplicationsServlet extends BaseServlet {
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         User user = currentUser(request);
-        List<Course> courses = recruitmentService.listCoursesEnrichedForMo(user.getUserId());
-        request.setAttribute("courses", courses);
-        request.setAttribute("pageTitle", "仪表盘");
-        request.setAttribute("activeNav", "mo-dashboard");
-        forwardToView(request, response, "mo/dashboard");
+        List<Application> apps = recruitmentService.listApplicationsEnrichedForApplicant(user.getUserId());
+        request.setAttribute("applications", apps);
+        request.setAttribute("pageTitle", "我的申请");
+        request.setAttribute("activeNav", "ta-applications");
+        forwardToView(request, response, "ta/applications");
     }
 }
