@@ -1,55 +1,124 @@
 package com.group55.ta.controller;
 
+import com.group55.ta.model.Role;
+import com.group55.ta.model.User;
+import com.group55.ta.service.AuthService;
+import com.group55.ta.service.RecruitmentService;
+import com.group55.ta.util.FlashUtil;
+import com.group55.ta.util.GsonProvider;
+
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.util.Optional;
+
+import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
+import javax.servlet.http.HttpSession;
 
 /**
- * Abstract base class for all Servlet controllers in this application.
- *
- * <p>All Servlet controllers should extend this class and override the
- * {@code doGet} and/or {@code doPost} methods to handle HTTP requests.</p>
- *
- * <p>This class provides common utility methods for:</p>
- * <ul>
- *   <li>Forwarding requests to JSP views under {@code /WEB-INF/views/}</li>
- *   <li>Sending JSON responses (for any AJAX endpoints)</li>
- * </ul>
- *
- * <p><b>MVC Role:</b> Controller (C layer)</p>
- *
- * @author Group 55
- * @version Sprint 0 - skeleton only
+ * Shared servlet helpers (Step 4).
  */
 public abstract class BaseServlet extends HttpServlet {
 
-    /**
-     * Forwards the current request to a JSP view located under
-     * {@code /WEB-INF/views/}.
-     *
-     * @param req      the incoming {@link HttpServletRequest}
-     * @param resp     the outgoing {@link HttpServletResponse}
-     * @param viewPath the relative path of the JSP file under {@code /WEB-INF/views/},
-     *                 e.g. {@code "login.jsp"} resolves to {@code /WEB-INF/views/login.jsp}
-     * @throws ServletException if a servlet-specific error occurs during forwarding
-     * @throws IOException      if an I/O error occurs during forwarding
-     */
-    protected void forwardToView(HttpServletRequest req, HttpServletResponse resp, String viewPath)
+    /** Session key for signed-in user id (replaces storing full {@link User}). */
+    public static final String CURRENT_USER_ID = "CURRENT_USER_ID";
+
+    protected transient AuthService authService;
+    protected transient RecruitmentService recruitmentService;
+
+    @Override
+    public void init() throws ServletException {
+        super.init();
+        authService = new AuthService();
+        recruitmentService = new RecruitmentService();
+    }
+
+    protected void render(HttpServletRequest request, HttpServletResponse response, String viewName)
             throws ServletException, IOException {
-        // TODO: Forward request to JSP view under /WEB-INF/views/
-        req.getRequestDispatcher("/WEB-INF/views/" + viewPath).forward(req, resp);
+        forwardToView(request, response, viewName);
+    }
+
+    protected void forwardToView(HttpServletRequest request, HttpServletResponse response, String viewName)
+            throws ServletException, IOException {
+        FlashUtil.expose(request);
+        String name = viewName;
+        if (!name.endsWith(".jsp")) {
+            name = name + ".jsp";
+        }
+        RequestDispatcher dispatcher = request.getRequestDispatcher("/WEB-INF/views/" + name);
+        dispatcher.forward(request, response);
+    }
+
+    protected void redirect(HttpServletRequest request, HttpServletResponse response, String path)
+            throws IOException {
+        response.sendRedirect(request.getContextPath() + path);
     }
 
     /**
-     * Sends a JSON string as the HTTP response body with content type
-     * {@code application/json; charset=UTF-8}.
-     *
-     * @param resp the outgoing {@link HttpServletResponse}
-     * @param json the JSON string to write to the response
+     * User set by {@link com.group55.ta.filter.AuthFilter} on protected routes.
      */
-    protected void sendJsonResponse(HttpServletResponse resp, String json) {
-        // TODO: Set content type to application/json and write response
+    protected User currentUser(HttpServletRequest request) {
+        Object v = request.getAttribute("currentUser");
+        return v instanceof User ? (User) v : null;
+    }
+
+    /**
+     * Resolves user from request attribute (filter) or session id + {@link AuthService}.
+     */
+    protected User sessionUser(HttpServletRequest request) {
+        User fromFilter = currentUser(request);
+        if (fromFilter != null) {
+            return fromFilter;
+        }
+        HttpSession session = request.getSession(false);
+        if (session == null) {
+            return null;
+        }
+        Object id = session.getAttribute(CURRENT_USER_ID);
+        if (!(id instanceof String)) {
+            return null;
+        }
+        return authService.findById((String) id).orElse(null);
+    }
+
+    protected void signIn(HttpServletRequest request, User user) {
+        request.getSession(true).setAttribute(CURRENT_USER_ID, user.getUserId());
+    }
+
+    protected void signOut(HttpServletRequest request) {
+        HttpSession session = request.getSession(false);
+        if (session != null) {
+            session.invalidate();
+        }
+    }
+
+    protected Optional<User> findSessionUser(HttpServletRequest request) {
+        return Optional.ofNullable(sessionUser(request));
+    }
+
+    protected String homePathFor(User user) {
+        Role role = user == null ? null : user.getRoleEnum();
+        return role == null ? "/auth/login" : role.getHomePath();
+    }
+
+    protected void json(HttpServletResponse response, Object payload) throws IOException {
+        response.setCharacterEncoding("UTF-8");
+        response.setContentType("application/json; charset=UTF-8");
+        try (PrintWriter out = response.getWriter()) {
+            out.write(GsonProvider.gson().toJson(payload));
+            out.flush();
+        }
+    }
+
+    protected void sendJsonResponse(HttpServletResponse response, String jsonBody) throws IOException {
+        response.setCharacterEncoding("UTF-8");
+        response.setContentType("application/json; charset=UTF-8");
+        try (PrintWriter out = response.getWriter()) {
+            out.write(jsonBody == null ? "null" : jsonBody);
+            out.flush();
+        }
     }
 }

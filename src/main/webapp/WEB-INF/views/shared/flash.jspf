@@ -1,0 +1,29 @@
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+
+<c:if test="${not empty flashSuccess}">
+    <div class="alert success">
+        <span>成功</span>
+        <strong><c:out value="${flashSuccess}"/></strong>
+    </div>
+</c:if>
+
+<c:if test="${not empty flashError}">
+    <div class="alert error">
+        <span>提示</span>
+        <strong><c:out value="${flashError}"/></strong>
+    </div>
+</c:if>
+
+<c:if test="${not empty errorMessage}">
+    <div class="alert error">
+        <span>提示</span>
+        <strong><c:out value="${errorMessage}"/></strong>
+    </div>
+</c:if>
+
+<c:if test="${not empty formError}">
+    <div class="alert error">
+        <span>提示</span>
+        <strong><c:out value="${formError}"/></strong>
+    </div>
+</c:if>
