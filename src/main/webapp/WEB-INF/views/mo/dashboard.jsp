@@ -25,7 +25,7 @@
                         <p style="margin-bottom:16px;">
                             申请 <strong><c:out value="${course.applicantCount}"/></strong> / 名额 <strong><c:out value="${course.taNeedCount}"/></strong>
                         </p>
-                        <a class="btn secondary wide" href="${pageContext.request.contextPath}/mo/courses/manage?id=${course.id}">管理申请</a>
+                        <a class="btn secondary wide" href="${pageContext.request.contextPath}/mo/courses/applicants?courseId=${course.id}">查看申请人</a>
                     </article>
                 </c:forEach>
             </div>

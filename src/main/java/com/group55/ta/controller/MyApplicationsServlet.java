@@ -11,8 +11,11 @@ import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+/**
+ * TA 查看自己的申请（Step 6 命名）。
+ */
 @WebServlet("/ta/applications")
-public class TAApplicationsServlet extends BaseServlet {
+public class MyApplicationsServlet extends BaseServlet {
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {

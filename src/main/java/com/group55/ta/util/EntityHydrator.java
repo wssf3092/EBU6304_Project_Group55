@@ -44,4 +44,15 @@ public final class EntityHydrator {
             }
         }
     }
+
+    public static void enrichApplicationApplicants(List<Application> apps, UserDao users) {
+        if (apps == null) {
+            return;
+        }
+        for (Application a : apps) {
+            if (a.getApplicantId() != null) {
+                users.findById(a.getApplicantId()).ifPresent(u -> a.setApplicantName(u.getName()));
+            }
+        }
+    }
 }
