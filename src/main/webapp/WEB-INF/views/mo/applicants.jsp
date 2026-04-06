@@ -1,73 +1,79 @@
-<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ include file="/WEB-INF/views/shared/app-start.jspf" %>
-
 <section class="panel">
     <div class="panel-head">
         <div>
-            <h2><c:out value="${course.name}"/></h2>
-            <p class="cell-subtle"><c:out value="${course.description}"/></p>
+            <h2><c:out value="${job.title}"/></h2>
+            <p class="panel-subtle"><c:out value="${job.module}"/> / <c:out value="${job.activityType}"/> / <c:out value="${job.displayDeadline}"/></p>
         </div>
-        <a class="btn secondary" href="${pageContext.request.contextPath}/mo/dashboard">返回仪表盘</a>
+        <div class="inline-actions">
+            <a class="btn secondary" href="${pageContext.request.contextPath}/mo/jobs">Back</a>
+            <a class="btn secondary" href="${pageContext.request.contextPath}/mo/jobs/applicants?jobId=${job.jobId}&sort=recent">Recent</a>
+            <a class="btn secondary" href="${pageContext.request.contextPath}/mo/jobs/applicants?jobId=${job.jobId}&sort=skill">Fit</a>
+            <a class="btn secondary" href="${pageContext.request.contextPath}/mo/jobs/applicants?jobId=${job.jobId}&sort=status">Status</a>
+        </div>
     </div>
 </section>
 
-<section class="panel">
-    <div class="panel-head">
-        <h2>申请人列表</h2>
-    </div>
-    <c:choose>
-        <c:when test="${empty applications}">
-            <div class="empty-state"><h3>暂无申请</h3></div>
-        </c:when>
-        <c:otherwise>
-            <div class="table-wrap">
-                <table class="data-table">
-                    <thead>
-                    <tr>
-                        <th>申请人</th>
-                        <th>用户 ID</th>
-                        <th>申请时间</th>
-                        <th>状态</th>
-                        <th>操作</th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    <c:forEach var="app" items="${applications}">
-                        <tr>
-                            <td><strong><c:out value="${app.applicantName != null ? app.applicantName : app.applicantId}"/></strong></td>
-                            <td><c:out value="${app.applicantId}"/></td>
-                            <td><c:out value="${app.applyDate}"/></td>
-                            <td>
-                                <c:choose>
-                                    <c:when test="${app.status == 'PENDING'}">
-                                        <span class="status-chip status-pending">待审核</span>
-                                    </c:when>
-                                    <c:when test="${app.status == 'ACCEPTED'}">
-                                        <span class="status-chip status-accepted">已通过</span>
-                                    </c:when>
-                                    <c:otherwise>
-                                        <span class="status-chip status-rejected">已拒绝</span>
-                                    </c:otherwise>
-                                </c:choose>
-                            </td>
-                            <td>
-                                <c:if test="${app.status == 'PENDING'}">
-                                    <c:url var="reviewLink" value="/mo/applications/review">
-                                        <c:param name="id" value="${app.applicationId}"/>
-                                    </c:url>
-                                    <a class="btn primary" style="display:inline-flex;" href="${reviewLink}">审核</a>
-                                </c:if>
-                                <c:if test="${app.status != 'PENDING' && not empty app.reviewNote}">
-                                    <span class="cell-subtle"><c:out value="${app.reviewNote}"/></span>
-                                </c:if>
-                            </td>
-                        </tr>
-                    </c:forEach>
-                    </tbody>
-                </table>
+<div class="stack-list">
+    <c:forEach items="${applicants}" var="item">
+        <section class="panel applicant-card">
+            <div class="surface-link-head">
+                <div>
+                    <strong><c:out value="${item.applicant.name}"/></strong>
+                    <span><c:out value="${item.profile.major}"/> / Year <c:out value="${item.profile.year}"/> / <c:out value="${item.applicant.email}"/></span>
+                </div>
+                <div class="inline-actions">
+                    <span class="score-pill"><c:out value="${item.matchScore}"/>%</span>
+                    <span class="status-chip status-${item.application.status}"><c:out value="${item.application.status}"/></span>
+                </div>
             </div>
-        </c:otherwise>
-    </c:choose>
-</section>
 
+            <div class="two-column tight">
+                <div>
+                    <h3>Profile</h3>
+                    <p class="rich-copy"><c:out value="${item.profile.bio}"/></p>
+                    <div class="badge-row">
+                        <c:forEach items="${item.profile.skills}" var="skillItem">
+                            <span class="badge"><c:out value="${skillItem}"/></span>
+                        </c:forEach>
+                    </div>
+                    <p class="note-line">Applied <c:out value="${item.application.displayAppliedAt}"/></p>
+                    <p class="note-line">Cover letter: <c:out value="${empty item.application.coverLetter ? 'None' : item.application.coverLetter}"/></p>
+                    <c:choose>
+                        <c:when test="${item.cvAvailable}">
+                            <a class="table-link" href="${pageContext.request.contextPath}/files/cv?userId=${item.applicant.userId}">Download CV</a>
+                        </c:when>
+                        <c:otherwise>
+                            <span class="cell-subtle">Not uploaded</span>
+                        </c:otherwise>
+                    </c:choose>
+                </div>
+                <div>
+                    <h3>Match</h3>
+                    <div class="badge-row">
+                        <c:forEach items="${item.matchedSkills}" var="skillItem">
+                            <span class="badge success"><c:out value="${skillItem}"/></span>
+                        </c:forEach>
+                        <c:forEach items="${item.missingSkills}" var="skillItem">
+                            <span class="badge warning"><c:out value="${skillItem}"/></span>
+                        </c:forEach>
+                    </div>
+                    <div class="ai-box" data-ai-feedback="match-insight" data-application-id="${item.application.applicationId}"></div>
+                </div>
+            </div>
+
+            <form method="post" action="${pageContext.request.contextPath}/mo/applications/review" class="form-inline-block">
+                <input type="hidden" name="jobId" value="${job.jobId}"/>
+                <input type="hidden" name="applicationId" value="${item.application.applicationId}"/>
+                <select name="decision" required>
+                    <option value="">Select decision</option>
+                    <option value="accepted">Accept</option>
+                    <option value="rejected">Reject</option>
+                </select>
+                <input type="text" name="note" placeholder="Note"/>
+                <button class="btn primary" type="submit">Save decision</button>
+            </form>
+        </section>
+    </c:forEach>
+</div>
 <%@ include file="/WEB-INF/views/shared/app-end.jspf" %>

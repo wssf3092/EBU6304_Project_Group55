@@ -2,86 +2,44 @@ package com.group55.ta.controller;
 
 import com.group55.ta.model.Role;
 import com.group55.ta.model.User;
+import com.group55.ta.service.AiService;
 import com.group55.ta.service.AuthService;
 import com.group55.ta.service.RecruitmentService;
 import com.group55.ta.util.FlashUtil;
-import com.group55.ta.util.GsonProvider;
+import com.group55.ta.util.JsonResponseUtil;
 
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.util.Optional;
-
-import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
+import java.io.IOException;
 
 /**
- * Shared servlet helpers (Step 4).
+ * Shared servlet helpers.
  */
 public abstract class BaseServlet extends HttpServlet {
+    public static final String CURRENT_USER_ID = "currentUserId";
 
-    /** Session key for signed-in user id (replaces storing full {@link User}). */
-    public static final String CURRENT_USER_ID = "CURRENT_USER_ID";
+    protected final AuthService authService = new AuthService();
+    protected final RecruitmentService recruitmentService = new RecruitmentService();
+    protected final AiService aiService = new AiService();
 
-    protected transient AuthService authService;
-    protected transient RecruitmentService recruitmentService;
-
-    @Override
-    public void init() throws ServletException {
-        super.init();
-        authService = new AuthService();
-        recruitmentService = new RecruitmentService();
-    }
-
-    protected void render(HttpServletRequest request, HttpServletResponse response, String viewName)
-            throws ServletException, IOException {
-        forwardToView(request, response, viewName);
-    }
-
-    protected void forwardToView(HttpServletRequest request, HttpServletResponse response, String viewName)
-            throws ServletException, IOException {
+    protected void render(HttpServletRequest request,
+                          HttpServletResponse response,
+                          String viewPath,
+                          String pageTitle,
+                          String pageSubtitle,
+                          String activeNav) throws ServletException, IOException {
         FlashUtil.expose(request);
-        String name = viewName;
-        if (!name.endsWith(".jsp")) {
-            name = name + ".jsp";
-        }
-        RequestDispatcher dispatcher = request.getRequestDispatcher("/WEB-INF/views/" + name);
-        dispatcher.forward(request, response);
+        request.setAttribute("pageTitle", pageTitle);
+        request.setAttribute("pageSubtitle", pageSubtitle);
+        request.setAttribute("activeNav", activeNav);
+        request.getRequestDispatcher("/WEB-INF/views/" + viewPath).forward(request, response);
     }
 
-    protected void redirect(HttpServletRequest request, HttpServletResponse response, String path)
-            throws IOException {
-        response.sendRedirect(request.getContextPath() + path);
-    }
-
-    /**
-     * User set by {@link com.group55.ta.filter.AuthFilter} on protected routes.
-     */
-    protected User currentUser(HttpServletRequest request) {
-        Object v = request.getAttribute("currentUser");
-        return v instanceof User ? (User) v : null;
-    }
-
-    /**
-     * Resolves user from request attribute (filter) or session id + {@link AuthService}.
-     */
-    protected User sessionUser(HttpServletRequest request) {
-        User fromFilter = currentUser(request);
-        if (fromFilter != null) {
-            return fromFilter;
-        }
-        HttpSession session = request.getSession(false);
-        if (session == null) {
-            return null;
-        }
-        Object id = session.getAttribute(CURRENT_USER_ID);
-        if (!(id instanceof String)) {
-            return null;
-        }
-        return authService.findById((String) id).orElse(null);
+    protected void redirect(HttpServletRequest request, HttpServletResponse response, String relativePath) throws IOException {
+        response.sendRedirect(request.getContextPath() + relativePath);
     }
 
     protected void signIn(HttpServletRequest request, User user) {
@@ -95,30 +53,33 @@ public abstract class BaseServlet extends HttpServlet {
         }
     }
 
-    protected Optional<User> findSessionUser(HttpServletRequest request) {
-        return Optional.ofNullable(sessionUser(request));
+    protected User currentUser(HttpServletRequest request) {
+        Object value = request.getAttribute("currentUser");
+        return value instanceof User ? (User) value : null;
+    }
+
+    protected User sessionUser(HttpServletRequest request) {
+        User user = currentUser(request);
+        if (user != null) {
+            return user;
+        }
+        HttpSession session = request.getSession(false);
+        if (session == null) {
+            return null;
+        }
+        Object value = session.getAttribute(CURRENT_USER_ID);
+        if (!(value instanceof String)) {
+            return null;
+        }
+        return authService.findById((String) value).orElse(null);
+    }
+
+    protected void json(HttpServletResponse response, Object payload) throws IOException {
+        JsonResponseUtil.write(response, payload);
     }
 
     protected String homePathFor(User user) {
         Role role = user == null ? null : user.getRoleEnum();
         return role == null ? "/auth/login" : role.getHomePath();
-    }
-
-    protected void json(HttpServletResponse response, Object payload) throws IOException {
-        response.setCharacterEncoding("UTF-8");
-        response.setContentType("application/json; charset=UTF-8");
-        try (PrintWriter out = response.getWriter()) {
-            out.write(GsonProvider.gson().toJson(payload));
-            out.flush();
-        }
-    }
-
-    protected void sendJsonResponse(HttpServletResponse response, String jsonBody) throws IOException {
-        response.setCharacterEncoding("UTF-8");
-        response.setContentType("application/json; charset=UTF-8");
-        try (PrintWriter out = response.getWriter()) {
-            out.write(jsonBody == null ? "null" : jsonBody);
-            out.flush();
-        }
     }
 }

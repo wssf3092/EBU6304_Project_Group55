@@ -1,11 +1,9 @@
 package com.group55.ta.dao;
 
-import com.group55.ta.model.Application;
-import com.group55.ta.model.Application.Status;
+import com.group55.ta.model.ApplicationRecord;
 import com.group55.ta.util.AppPaths;
 import com.group55.ta.util.DateTimeUtil;
 import com.group55.ta.util.JsonFileUtil;
-import com.group55.ta.util.ValidationUtil;
 
 import java.nio.file.Path;
 import java.util.Comparator;
@@ -14,129 +12,81 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
- * Applications as {@code data/applications/{applicationId}.json}.
+ * DAO for application JSON files.
  */
 public class ApplicationDao {
     private static final Object LOCK = new Object();
 
-    public Application create(String applicantId, String courseId, String statement) {
+    public ApplicationRecord create(String applicantId, String jobId, String coverLetter) {
         synchronized (LOCK) {
-            if (hasApplied(applicantId, courseId)) {
-                throw new IllegalStateException("Already applied for this course.");
+            if (hasApplied(applicantId, jobId)) {
+                throw new IllegalStateException("You have already applied for this job.");
             }
-            Application app = new Application();
-            app.setApplicationId(nextApplicationId());
-            app.setApplicantId(applicantId);
-            app.setCourseId(courseId);
-            app.setStatement(statement);
-            app.setStatusEnum(Status.PENDING);
-            app.setAppliedAt(DateTimeUtil.nowIso());
-            save(app);
-            return app;
+            ApplicationRecord record = new ApplicationRecord();
+            record.setApplicationId(nextApplicationId());
+            record.setApplicantId(applicantId);
+            record.setJobId(jobId);
+            record.setCoverLetter(coverLetter);
+            record.setAppliedAt(DateTimeUtil.nowIso());
+            record.setStatus("pending");
+            record.setReviewedAt(null);
+            record.setReviewNote(null);
+            save(record);
+            return record;
         }
     }
 
-    public void save(Application application) {
+    public void save(ApplicationRecord record) {
         synchronized (LOCK) {
-            Path file = AppPaths.applications().resolve(application.getApplicationId() + ".json");
-            JsonFileUtil.write(file, application);
+            Path file = AppPaths.applications().resolve(record.getApplicationId() + ".json");
+            JsonFileUtil.write(file, record);
         }
     }
 
-    public Optional<Application> findById(String applicationId) {
+    public Optional<ApplicationRecord> findById(String applicationId) {
         synchronized (LOCK) {
-            if (ValidationUtil.isBlank(applicationId)) {
-                return Optional.empty();
-            }
             Path file = AppPaths.applications().resolve(applicationId + ".json");
-            return JsonFileUtil.read(file, Application.class);
+            return JsonFileUtil.read(file, ApplicationRecord.class);
         }
     }
 
-    public List<Application> findAll() {
+    public List<ApplicationRecord> listAll() {
         synchronized (LOCK) {
-            List<Application> apps = JsonFileUtil.readAll(AppPaths.applications(), Application.class);
-            apps.sort(Comparator.comparing(Application::getAppliedAt, Comparator.nullsLast(String::compareTo)).reversed());
-            return apps;
+            List<ApplicationRecord> records = JsonFileUtil.readAll(AppPaths.applications(), ApplicationRecord.class);
+            records.sort(Comparator.comparing(ApplicationRecord::getAppliedAt, Comparator.nullsLast(String::compareTo)).reversed());
+            return records;
         }
     }
 
-    public List<Application> findByApplicant(String applicantId) {
-        if (applicantId == null) {
-            return new java.util.ArrayList<>();
-        }
-        return findAll().stream()
-                .filter(a -> applicantId.equals(a.getApplicantId()))
+    public List<ApplicationRecord> listByApplicant(String applicantId) {
+        return listAll().stream()
+                .filter(record -> applicantId.equals(record.getApplicantId()))
                 .collect(Collectors.toList());
     }
 
-    /** @deprecated use {@link #findByApplicant(String)} */
-    public List<Application> findByStudentUsername(String username) {
-        return findByApplicant(username);
-    }
-
-    public List<Application> findByCourseId(String courseId) {
-        if (courseId == null) {
-            return new java.util.ArrayList<>();
-        }
-        return findAll().stream()
-                .filter(a -> courseId.equals(a.getCourseId()))
+    public List<ApplicationRecord> listByJob(String jobId) {
+        return listAll().stream()
+                .filter(record -> jobId.equals(record.getJobId()))
                 .collect(Collectors.toList());
     }
 
-    public boolean updateStatus(String applicationId, Status status) {
-        synchronized (LOCK) {
-            Optional<Application> opt = findById(applicationId);
-            if (!opt.isPresent()) {
-                return false;
-            }
-            Application app = opt.get();
-            app.setStatusEnum(status);
-            save(app);
-            return true;
-        }
-    }
-
-    /**
-     * 审核结果 + 可选备注与时间戳（Step 6）。
-     */
-    public boolean updateStatusAndReview(String applicationId, Status status, String reviewNote) {
-        synchronized (LOCK) {
-            Optional<Application> opt = findById(applicationId);
-            if (!opt.isPresent()) {
-                return false;
-            }
-            Application app = opt.get();
-            app.setStatusEnum(status);
-            app.setReviewedAt(DateTimeUtil.nowIso());
-            if (ValidationUtil.isBlank(reviewNote)) {
-                app.setReviewNote(null);
-            } else {
-                app.setReviewNote(ValidationUtil.trim(reviewNote));
-            }
-            save(app);
-            return true;
-        }
-    }
-
-    public boolean hasApplied(String applicantId, String courseId) {
-        return findAll().stream()
-                .anyMatch(a -> applicantId.equals(a.getApplicantId()) && courseId.equals(a.getCourseId()));
+    public boolean hasApplied(String applicantId, String jobId) {
+        return listAll().stream()
+                .anyMatch(record -> applicantId.equals(record.getApplicantId()) && jobId.equals(record.getJobId()));
     }
 
     private String nextApplicationId() {
-        List<Application> apps = findAll();
+        List<ApplicationRecord> records = listAll();
         int max = 0;
-        for (Application app : apps) {
-            if (app.getApplicationId() == null) {
+        for (ApplicationRecord record : records) {
+            if (record.getApplicationId() == null) {
                 continue;
             }
-            String[] parts = app.getApplicationId().split("_");
+            String[] parts = record.getApplicationId().split("_");
             if (parts.length == 2) {
                 try {
                     max = Math.max(max, Integer.parseInt(parts[1]));
                 } catch (NumberFormatException ignored) {
-                    // skip
                 }
             }
         }

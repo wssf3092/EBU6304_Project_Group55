@@ -1,32 +1,33 @@
 <%@ page contentType="text/html;charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="en">
 <head>
     <meta charset="UTF-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title><c:out value="${pageTitle}"/> | 课程 TA 申请系统</title>
+    <title><c:out value="${pageTitle}"/> | TA Recruitment System</title>
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/app.css"/>
 </head>
 <body class="auth-body" data-context-path="${pageContext.request.contextPath}">
 <div class="auth-shell">
     <section class="auth-rail">
         <div class="auth-brand">
-            <div class="auth-mark">Group55</div>
-            <h1>课程 TA 申请与管理</h1>
+            <div class="auth-mark">TA Recruitment</div>
+            <h1>TA Recruitment</h1>
         </div>
         <div class="auth-visual">
             <div class="auth-orbit">
-                <span class="auth-orbit-node auth-orbit-core">TA</span>
-                <span class="auth-orbit-node auth-orbit-top">课</span>
-                <span class="auth-orbit-node auth-orbit-right">审</span>
-                <span class="auth-orbit-node auth-orbit-bottom">管</span>
+                <span class="auth-orbit-node auth-orbit-core">TR</span>
+                <span class="auth-orbit-node auth-orbit-top">TA</span>
+                <span class="auth-orbit-node auth-orbit-right">MO</span>
+                <span class="auth-orbit-node auth-orbit-bottom">ADM</span>
             </div>
             <div class="auth-chip-grid">
-                <span class="auth-chip">课程</span>
-                <span class="auth-chip">申请</span>
-                <span class="auth-chip">审核</span>
-                <span class="auth-chip">管理</span>
+                <span class="auth-chip">Profiles</span>
+                <span class="auth-chip">Jobs</span>
+                <span class="auth-chip">Review</span>
+                <span class="auth-chip">Workload</span>
             </div>
         </div>
     </section>
