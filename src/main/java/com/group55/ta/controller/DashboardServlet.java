@@ -15,7 +15,7 @@ public class DashboardServlet extends BaseServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         HttpSession session = request.getSession(false);
-        Object currentUser = session == null ? null : session.getAttribute("currentUser");
+        Object currentUser = session == null ? null : session.getAttribute("user");
         request.setAttribute("currentUser", currentUser);
 
         if (currentUser != null) {

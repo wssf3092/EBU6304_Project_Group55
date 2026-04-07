@@ -9,10 +9,12 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 
+import com.group55.ta.model.User;
+
 /**
  * Filter to protect authorized routes and validate session status.
  */
-@WebFilter(urlPatterns = {"/dashboard", "/course/*", "/courses/*", "/application/*", "/apply", "/applications"})
+@WebFilter(urlPatterns = {"/dashboard", "/course/*", "/courses", "/courses/*", "/application", "/application/*", "/apply", "/applications"})
 public class AuthenticationFilter implements Filter {
 
     // Whitelist paths that bypass authentication checks
@@ -47,7 +49,26 @@ public class AuthenticationFilter implements Filter {
         boolean loggedIn = (session != null && session.getAttribute("user") != null);
 
         if (loggedIn) {
-            // User is authenticated, proceed
+            // Role-based access control
+            User user = (User) session.getAttribute("user");
+            String role = (user != null && user.getRole() != null) ? user.getRole() : "";
+
+            // Teacher-only paths
+            if (path.startsWith("/courses/manage") || path.startsWith("/courses/new")) {
+                if (!"TEACHER".equalsIgnoreCase(role) && !"Teacher".equals(role)) {
+                    res.sendRedirect(req.getContextPath() + "/dashboard");
+                    return;
+                }
+            }
+
+            // Student-only paths
+            if (path.equals("/apply") || path.startsWith("/apply")) {
+                if (!"STUDENT".equalsIgnoreCase(role) && !"Student".equals(role)) {
+                    res.sendRedirect(req.getContextPath() + "/dashboard");
+                    return;
+                }
+            }
+
             chain.doFilter(request, response);
         } else {
             // Unauthenticated request, redirect to login page
