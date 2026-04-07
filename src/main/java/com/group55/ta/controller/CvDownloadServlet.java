@@ -3,6 +3,7 @@ package com.group55.ta.controller;
 import com.group55.ta.model.Role;
 import com.group55.ta.model.User;
 import com.group55.ta.util.CvFileUtil;
+import com.group55.ta.util.ValidationUtil;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -22,7 +23,15 @@ public class CvDownloadServlet extends BaseServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         User requester = currentUser(request);
+        if (requester == null) {
+            response.sendError(HttpServletResponse.SC_UNAUTHORIZED);
+            return;
+        }
         String userId = request.getParameter("userId");
+        if (ValidationUtil.isBlank(userId)) {
+            response.sendError(HttpServletResponse.SC_BAD_REQUEST);
+            return;
+        }
         if (Role.TA.name().equalsIgnoreCase(requester.getRole()) && !requester.getUserId().equals(userId)) {
             response.sendError(HttpServletResponse.SC_FORBIDDEN);
             return;

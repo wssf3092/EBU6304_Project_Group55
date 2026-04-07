@@ -71,6 +71,9 @@ public class ApplicantProfile {
     }
 
     public List<String> getSkills() {
+        if (skills == null) {
+            skills = new ArrayList<>();
+        }
         return skills;
     }
 

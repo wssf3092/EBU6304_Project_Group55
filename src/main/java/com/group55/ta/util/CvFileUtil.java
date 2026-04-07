@@ -20,6 +20,9 @@ public final class CvFileUtil {
     }
 
     public static String saveUpload(String userId, Part part) {
+        if (ValidationUtil.isBlank(userId)) {
+            throw new IllegalArgumentException("User id is required to store a CV.");
+        }
         if (part == null || part.getSize() <= 0) {
             throw new IllegalArgumentException("Select a PDF or DOCX file to upload.");
         }
@@ -55,6 +58,9 @@ public final class CvFileUtil {
     }
 
     public static Optional<Path> findCv(String userId) {
+        if (ValidationUtil.isBlank(userId)) {
+            return Optional.empty();
+        }
         Path directory = AppPaths.cvs().resolve(userId);
         if (!Files.exists(directory)) {
             return Optional.empty();
