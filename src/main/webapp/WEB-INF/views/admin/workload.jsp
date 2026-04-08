@@ -25,6 +25,7 @@
                 <h2>Capacity</h2>
             </div>
         </div>
+        <p class="cell-subtle">Each row totals weekly hours from accepted placements and compares them to the TA weekly limit stored in the applicant profile (status: underload / balanced / overload).</p>
         <div class="table-wrap">
             <table class="data-table">
                 <thead>

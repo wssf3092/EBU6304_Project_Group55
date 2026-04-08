@@ -7,7 +7,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
 /**
- * Admin workload overview page.
+ * Admin workload overview (Step 9): exposes {@code metrics}, {@code workloads}, and {@code jobs} DTOs to the view.
  */
 @WebServlet("/admin/workload")
 public class WorkloadServlet extends BaseServlet {

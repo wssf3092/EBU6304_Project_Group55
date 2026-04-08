@@ -380,11 +380,11 @@ public class RecruitmentService {
             int maxHours = profile == null || profile.getMaxWorkloadHoursPerWeek() == null ? 0 : profile.getMaxWorkloadHoursPerWeek();
             String loadStatus;
             if (maxHours > 0 && totalHours > maxHours) {
-                loadStatus = "overload";
+                loadStatus = WorkloadEntry.LOAD_OVERLOAD;
             } else if (totalHours == 0 || (maxHours > 0 && totalHours <= Math.max(1, maxHours / 2))) {
-                loadStatus = "underload";
+                loadStatus = WorkloadEntry.LOAD_UNDERLOAD;
             } else {
-                loadStatus = "balanced";
+                loadStatus = WorkloadEntry.LOAD_BALANCED;
             }
 
             WorkloadEntry entry = new WorkloadEntry();

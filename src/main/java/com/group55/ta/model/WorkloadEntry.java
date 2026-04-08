@@ -4,9 +4,15 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Workload projection entry for Admin view.
+ * Workload projection entry for Admin view (Step 9).
+ * {@link #loadStatus} values are assigned in {@link com.group55.ta.service.RecruitmentService#buildWorkloadEntries()}.
  */
 public class WorkloadEntry {
+
+    public static final String LOAD_OVERLOAD = "overload";
+    public static final String LOAD_BALANCED = "balanced";
+    public static final String LOAD_UNDERLOAD = "underload";
+
     private String userId;
     private String name;
     private List<String> acceptedJobs = new ArrayList<>();
@@ -31,6 +37,9 @@ public class WorkloadEntry {
     }
 
     public List<String> getAcceptedJobs() {
+        if (acceptedJobs == null) {
+            acceptedJobs = new ArrayList<>();
+        }
         return acceptedJobs;
     }
 
@@ -63,10 +72,14 @@ public class WorkloadEntry {
     }
 
     public boolean isOverload() {
-        return "overload".equalsIgnoreCase(loadStatus);
+        return LOAD_OVERLOAD.equalsIgnoreCase(loadStatus);
     }
 
     public boolean isBalanced() {
-        return "balanced".equalsIgnoreCase(loadStatus);
+        return LOAD_BALANCED.equalsIgnoreCase(loadStatus);
+    }
+
+    public boolean isUnderload() {
+        return LOAD_UNDERLOAD.equalsIgnoreCase(loadStatus);
     }
 }
