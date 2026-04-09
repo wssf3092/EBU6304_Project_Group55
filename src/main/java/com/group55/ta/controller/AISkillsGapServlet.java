@@ -9,7 +9,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
 /**
- * AJAX endpoint for TA skills-gap analysis.
+ * GET {@code /ai/skills-gap?jobId=...} &mdash; JSON for TA job detail AI panel ({@code data-ai-feedback="skills-gap"}).
  */
 @WebServlet("/ai/skills-gap")
 public class AISkillsGapServlet extends BaseServlet {

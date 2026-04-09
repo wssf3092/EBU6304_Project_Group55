@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+/** Regression tests for {@link AiConfig} URL normalization (no network). */
 class AiConfigTest {
     @AfterEach
     void tearDown() {

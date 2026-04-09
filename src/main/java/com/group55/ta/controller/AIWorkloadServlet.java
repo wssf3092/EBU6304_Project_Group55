@@ -9,7 +9,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
 /**
- * AJAX endpoint for workload balancing advice.
+ * GET {@code /ai/workload-balance} &mdash; JSON for Admin workload page ({@code data-ai-feedback="workload-balance"}).
  */
 @WebServlet("/ai/workload-balance")
 public class AIWorkloadServlet extends BaseServlet {

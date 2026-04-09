@@ -9,7 +9,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
 /**
- * AJAX endpoint for applicant match analysis.
+ * GET {@code /ai/match?applicationId=...} &mdash; JSON for MO applicant review panel ({@code data-ai-feedback="match-insight"}).
  */
 @WebServlet("/ai/match")
 public class AIMatchServlet extends BaseServlet {

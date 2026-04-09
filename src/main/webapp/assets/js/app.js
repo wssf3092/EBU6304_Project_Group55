@@ -23,6 +23,7 @@ window.App = {
         return payload;
     },
 
+    // Step 10: keys match data-ai-feedback on JSP; fetch URLs map to /ai/* servlets.
     aiDefinitions() {
         return {
             "skills-gap": {
