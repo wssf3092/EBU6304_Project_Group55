@@ -26,7 +26,7 @@ public class ApplicationServlet extends BaseServlet {
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         HttpSession session = request.getSession(false);
-        Object currentUser = session == null ? null : session.getAttribute("user");
+        Object currentUser = session == null ? null : session.getAttribute("currentUser");
         if (currentUser == null) {
             response.sendRedirect(request.getContextPath() + "/login");
             return;
