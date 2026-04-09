@@ -55,6 +55,10 @@
         <servlet-name>CourseListServlet</servlet-name>
         <url-pattern>/course/list</url-pattern>
     </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>CourseListServlet</servlet-name>
+        <url-pattern>/courses</url-pattern>
+    </servlet-mapping>
 
     <servlet>
         <servlet-name>ApplicationServlet</servlet-name>
@@ -63,6 +67,28 @@
     <servlet-mapping>
         <servlet-name>ApplicationServlet</servlet-name>
         <url-pattern>/application</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>ApplicationServlet</servlet-name>
+        <url-pattern>/apply</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <servlet-name>CourseCreateServlet</servlet-name>
+        <servlet-class>com.group55.ta.controller.CourseCreateServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>CourseCreateServlet</servlet-name>
+        <url-pattern>/courses/new</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <servlet-name>CourseManageServlet</servlet-name>
+        <servlet-class>com.group55.ta.controller.CourseManageServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>CourseManageServlet</servlet-name>
+        <url-pattern>/courses/manage</url-pattern>
     </servlet-mapping>
 
     <!-- Filters (implemented by Dev-F, referenced here for assembly) -->
@@ -98,6 +124,18 @@
     <filter-mapping>
         <filter-name>AuthenticationFilter</filter-name>
         <url-pattern>/application/*</url-pattern>
+    </filter-mapping>
+    <filter-mapping>
+        <filter-name>AuthenticationFilter</filter-name>
+        <url-pattern>/courses</url-pattern>
+    </filter-mapping>
+    <filter-mapping>
+        <filter-name>AuthenticationFilter</filter-name>
+        <url-pattern>/courses/*</url-pattern>
+    </filter-mapping>
+    <filter-mapping>
+        <filter-name>AuthenticationFilter</filter-name>
+        <url-pattern>/apply</url-pattern>
     </filter-mapping>
 
     <!-- Error pages -->
