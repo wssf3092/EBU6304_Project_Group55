@@ -1,4 +1,3 @@
-<?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
@@ -6,10 +5,11 @@
 
     <groupId>com.group55</groupId>
     <artifactId>ta-recruitment-system</artifactId>
-    <version>1.0-SNAPSHOT</version>
+    <version>1.0.0</version>
     <packaging>war</packaging>
 
-    <description>EBU6304 TA Recruitment System (Servlet/JSP, file-based persistence)</description>
+    <name>TA Recruitment System</name>
+    <description>EBU6304 TA Recruitment System using Servlet/JSP and file-based persistence</description>
 
     <properties>
         <maven.compiler.source>11</maven.compiler.source>
