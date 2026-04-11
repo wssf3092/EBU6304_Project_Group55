@@ -29,7 +29,9 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
- * Explainable AI and structured fallback logic.
+ * Step 10 orchestration: skills-gap (TA), match insight (MO/Admin), workload advice (Admin).
+ * When {@link AiConfig#isConfigured()} is false or HTTP fails, methods still return JSON with
+ * {@code available:false} and rule-based fields so the UI can render without throwing.
  */
 public class AiService {
     private final RecruitmentService recruitmentService = new RecruitmentService();

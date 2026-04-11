@@ -16,7 +16,8 @@ import java.net.URL;
 import java.nio.charset.StandardCharsets;
 
 /**
- * HttpURLConnection based AI REST caller.
+ * Minimal HTTP client for OpenAI-style chat completion JSON APIs using {@link HttpURLConnection}.
+ * Uses timeouts and Bearer auth from {@link AiConfig}; returns a small JSON envelope on failure.
  */
 public class AiHttpClient {
     private final AiConfig config;
@@ -25,6 +26,11 @@ public class AiHttpClient {
         this.config = config;
     }
 
+    /**
+     * POSTs a chat completion request and parses the first assistant message content as JSON when possible.
+     *
+     * @return parsed JSON from the model, or a fallback object with {@code available:false} on error / misconfiguration
+     */
     public JsonObject requestJson(String systemPrompt, String userPrompt) {
         JsonObject fallback = new JsonObject();
         fallback.addProperty("available", false);

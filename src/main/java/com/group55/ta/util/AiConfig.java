@@ -6,7 +6,11 @@ import java.net.URI;
 import java.util.Properties;
 
 /**
- * AI integration configuration holder.
+ * Loads OpenAI-compatible API settings for {@link com.group55.ta.service.AiService}.
+ * <p>
+ * Precedence: JVM system properties ({@code ai.*}) &gt; environment ({@code TA_AI_*}) &gt;
+ * {@code ai-config.local.properties} &gt; {@code ai-config.properties}.
+ * Base URL values are normalized to a concrete {@code .../v1/chat/completions} endpoint where possible.
  */
 public class AiConfig {
     private final String baseUrl;
@@ -118,6 +122,9 @@ public class AiConfig {
         return cacheMinutes;
     }
 
+    /**
+     * @return {@code true} when both API base URL and key are non-blank (AI calls may still fail at runtime).
+     */
     public boolean isConfigured() {
         return !ValidationUtil.isBlank(baseUrl) && !ValidationUtil.isBlank(apiKey);
     }

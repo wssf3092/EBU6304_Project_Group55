@@ -14,6 +14,7 @@ import java.nio.file.Path;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+/** Ensures AI endpoints degrade to structured JSON when the HTTP layer cannot reach a model. */
 class AiServiceTest {
     @TempDir
     Path tempDir;

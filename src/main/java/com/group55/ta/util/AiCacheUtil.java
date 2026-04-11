@@ -14,7 +14,8 @@ import java.time.format.DateTimeFormatter;
 import java.util.Optional;
 
 /**
- * AI response cache utility.
+ * Persists AI JSON payloads under {@link com.group55.ta.util.AppPaths#aiCache()} with a timestamp wrapper.
+ * Entries older than the caller-supplied TTL are ignored on read.
  */
 public final class AiCacheUtil {
     private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss");
@@ -22,6 +23,9 @@ public final class AiCacheUtil {
     private AiCacheUtil() {
     }
 
+    /**
+     * @return cached payload if the file exists and is still within {@code ttl} of {@code cachedAt}
+     */
     public static Optional<JsonObject> readIfValid(Path cacheFile, Duration ttl) {
         if (!Files.exists(cacheFile)) {
             return Optional.empty();
@@ -40,6 +44,7 @@ public final class AiCacheUtil {
         return Optional.empty();
     }
 
+    /** Writes {@code { cachedAt, payload }}; creates parent directories as needed. */
     public static void write(Path cacheFile, JsonObject payload) {
         JsonObject wrapper = new JsonObject();
         wrapper.addProperty("cachedAt", LocalDateTime.now().format(FORMATTER));
