@@ -1,0 +1,9 @@
+{
+  "userId": "MO_005",
+  "name": "Morgan QA 20260409035506",
+  "email": "qa-mo-20260409035506@example.com",
+  "passwordHash": "d3dec3f35387156495cbc21471313f87155f878f3435b693f50077c2be479033",
+  "role": "MO",
+  "active": true,
+  "createdAt": "2026-04-09T11:55:07"
+}

@@ -1,0 +1,44 @@
+{
+  "cachedAt": "2026-04-09T18:24:46",
+  "payload": {
+    "summary": "Current TA workload is imbalanced with TA_004 at 8/10 hours while others have 4/10 or 0/0. 7 open jobs (4 hours each) need assignment to balance workload across available TAs.",
+    "recommendations": [
+      {
+        "taId": "TA_001",
+        "jobId": "JOB_001",
+        "reason": "TA_001 has 0/0 max hours (likely new/unassigned) and should take first job to start balancing workload"
+      },
+      {
+        "taId": "TA_001",
+        "jobId": "JOB_002",
+        "reason": "TA_001 needs additional assignment to reach minimum workload level"
+      },
+      {
+        "taId": "TA_002",
+        "jobId": "JOB_003",
+        "reason": "Increase TA_002 from 4 to 8 hours to match TA_004\u0027s current level"
+      },
+      {
+        "taId": "TA_003",
+        "jobId": "JOB_004",
+        "reason": "Increase TA_003 from 4 to 8 hours to match TA_004\u0027s current level"
+      },
+      {
+        "taId": "TA_005",
+        "jobId": "JOB_005",
+        "reason": "Increase TA_005 from 4 to 8 hours to match TA_004\u0027s current level"
+      },
+      {
+        "taId": "TA_006",
+        "jobId": "JOB_006",
+        "reason": "Increase TA_006 from 4 to 8 hours to match TA_004\u0027s current level"
+      },
+      {
+        "taId": "TA_004",
+        "jobId": "JOB_007",
+        "reason": "TA_004 at 8/10 hours can take one more job to reach max capacity, maintaining balanced distribution"
+      }
+    ],
+    "available": true
+  }
+}
