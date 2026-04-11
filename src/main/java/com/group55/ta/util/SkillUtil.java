@@ -8,7 +8,8 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
- * Skill parsing and matching helper.
+ * Skill parsing and matching helper (Step 9).
+ * Match scores are case-insensitive on trimmed tokens.
  */
 public final class SkillUtil {
     private SkillUtil() {
@@ -59,6 +60,9 @@ public final class SkillUtil {
         return result;
     }
 
+    /**
+     * @return percentage of required skills covered by the candidate (0–100). Empty requirements yield 100.
+     */
     public static int baseMatchScore(List<String> candidateSkills, List<String> requiredSkills) {
         if (requiredSkills == null || requiredSkills.isEmpty()) {
             return 100;
