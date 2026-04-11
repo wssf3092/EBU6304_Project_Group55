@@ -1,24 +1,24 @@
 package com.group55.ta.util;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
 import java.io.File;
 import java.util.List;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * Unit tests for FileStorageUtil
  * Focuses on baseline text file operations.
  */
-public class FileStorageUtilTest {
+class FileStorageUtilTest {
 
     private final String testFilePath = "data/test_storage.txt";
 
-    @Before
-    public void setUp() {
-        // Ensure clean state before each test
+    @BeforeEach
+    void setUp() {
         File file = new File(testFilePath);
         if (file.exists()) {
             file.delete();
@@ -28,9 +28,8 @@ public class FileStorageUtilTest {
         }
     }
 
-    @After
-    public void tearDown() {
-        // Cleanup after tests
+    @AfterEach
+    void tearDown() {
         File file = new File(testFilePath);
         if (file.exists()) {
             file.delete();
@@ -38,51 +37,46 @@ public class FileStorageUtilTest {
     }
 
     @Test
-    public void testWriteAndReadFile() {
+    void testWriteAndReadFile() {
         String content = "Hello, World!";
-        // Assuming FileStorageUtil.writeFile(path, content) exists
         boolean writeSuccess = FileStorageUtil.writeFile(testFilePath, content);
-        assertTrue("Write file should return true upon success", writeSuccess);
+        assertTrue(writeSuccess, "Write file should return true upon success");
 
-        // Assuming FileStorageUtil.readFile(path) exists
         String readContent = FileStorageUtil.readFile(testFilePath);
-        assertEquals("Read content should exactly match written content", content, readContent);
+        assertEquals(content, readContent, "Read content should exactly match written content");
     }
 
     @Test
-    public void testAppendToFile() {
+    void testAppendToFile() {
         FileStorageUtil.writeFile(testFilePath, "Line 1");
-        
-        // Assuming FileStorageUtil.appendToFile(path, content) exists
+
         boolean appendSuccess = FileStorageUtil.appendToFile(testFilePath, "\nLine 2");
-        assertTrue("Append file should return true", appendSuccess);
+        assertTrue(appendSuccess, "Append file should return true");
 
         String readContent = FileStorageUtil.readFile(testFilePath);
-        assertEquals("Content should contain both lines", "Line 1\nLine 2", readContent);
+        assertEquals("Line 1\nLine 2", readContent, "Content should contain both lines");
     }
 
     @Test
-    public void testReadLines() {
+    void testReadLines() {
         FileStorageUtil.writeFile(testFilePath, "Line 1\nLine 2\nLine 3");
-        
-        // Assuming FileStorageUtil.readLines(path) exists
+
         List<String> lines = FileStorageUtil.readLines(testFilePath);
-        
-        assertNotNull("Lines list should not be null", lines);
-        assertEquals("Should read exactly 3 valid lines", 3, lines.size());
-        assertEquals("First line should map correctly", "Line 1", lines.get(0));
-        assertEquals("Third line should map correctly", "Line 3", lines.get(2));
+
+        assertNotNull(lines, "Lines list should not be null");
+        assertEquals(3, lines.size(), "Should read exactly 3 valid lines");
+        assertEquals("Line 1", lines.get(0), "First line should map correctly");
+        assertEquals("Line 3", lines.get(2), "Third line should map correctly");
     }
 
     @Test
-    public void testFileNotExists() {
+    void testFileNotExists() {
         String nonExistentPath = "data/does_not_exist_file.txt";
-        
-        // Exception handling: should return null gracefully rather than crash
+
         String content = FileStorageUtil.readFile(nonExistentPath);
-        assertNull("Reading non-existent file should return null to prevent crashes", content);
-        
+        assertNull(content, "Reading non-existent file should return null to prevent crashes");
+
         List<String> lines = FileStorageUtil.readLines(nonExistentPath);
-        assertNull("Reading lines of non-existent file should safely return null", lines);
+        assertNull(lines, "Reading lines of non-existent file should safely return null");
     }
 }

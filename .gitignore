@@ -1,6 +1,8 @@
 .classpath
 .project
 .settings/
+.idea/
+*.iml
 
 target/
 out/
@@ -10,7 +12,3 @@ build/
 *.tmp
 .DS_Store
 Thumbs.db
-
-# Allow tracking JARs in lib/ (required by project plan)
-*.jar
-!lib/*.jar
