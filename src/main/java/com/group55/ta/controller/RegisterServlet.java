@@ -6,8 +6,8 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import com.group55.ta.dao.UserDao;
 import com.group55.ta.model.Role;
+import com.group55.ta.service.AuthService;
 import com.group55.ta.util.ValidationUtil;
 
 public class RegisterServlet extends BaseServlet {
@@ -48,22 +48,21 @@ public class RegisterServlet extends BaseServlet {
             return;
         }
 
-        UserDao userDao = new UserDao();
-        if (userDao.findByEmail(email).isPresent()) {
-            request.setAttribute("errorMessage", "该邮箱已注册");
+        AuthService authService = new AuthService();
+        try {
+            authService.register(name, email, password, role);
+        } catch (IllegalArgumentException ex) {
+            request.setAttribute("errorMessage", ex.getMessage());
             request.setAttribute("email", email);
             request.setAttribute("name", name);
             request.setAttribute("role", roleRaw);
             forwardToView(request, response, "register");
             return;
-        }
-
-        try {
-            userDao.create(name, email, password, role);
         } catch (IllegalStateException ex) {
             request.setAttribute("errorMessage", ex.getMessage());
             request.setAttribute("email", email);
             request.setAttribute("name", name);
+            request.setAttribute("role", roleRaw);
             forwardToView(request, response, "register");
             return;
         }

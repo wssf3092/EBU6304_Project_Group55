@@ -1,11 +1,10 @@
 package com.group55.ta.controller;
 
-import com.group55.ta.dao.ApplicationDao;
-import com.group55.ta.dao.CourseDao;
 import com.group55.ta.model.Application;
 import com.group55.ta.model.Course;
 import com.group55.ta.model.Role;
 import com.group55.ta.model.User;
+import com.group55.ta.service.RecruitmentService;
 
 import java.io.IOException;
 import java.util.List;
@@ -32,8 +31,8 @@ public class CourseManageServlet extends BaseServlet {
             return;
         }
 
-        CourseDao courseDao = new CourseDao();
-        Course course = courseDao.findById(courseId);
+        RecruitmentService recruitmentService = new RecruitmentService();
+        Course course = recruitmentService.findCourse(courseId);
         if (course == null) {
             response.sendRedirect(request.getContextPath() + "/dashboard");
             return;
@@ -45,8 +44,7 @@ public class CourseManageServlet extends BaseServlet {
             return;
         }
 
-        ApplicationDao appDao = new ApplicationDao();
-        List<Application> applications = appDao.findByCourseId(courseId);
+        List<Application> applications = recruitmentService.listApplicationsForCourse(courseId);
         request.setAttribute("course", course);
         request.setAttribute("applications", applications);
 
@@ -82,27 +80,28 @@ public class CourseManageServlet extends BaseServlet {
             return;
         }
 
-        CourseDao courseDao = new CourseDao();
-        Course course = courseDao.findById(courseId);
+        RecruitmentService recruitmentService = new RecruitmentService();
+        Course course = recruitmentService.findCourse(courseId);
         if (course == null || !isMoOwner(user, course)) {
             session.setAttribute("errorMessage", "无权限管理该课程");
             response.sendRedirect(request.getContextPath() + "/dashboard");
             return;
         }
 
-        ApplicationDao appDao = new ApplicationDao();
         if ("approve".equalsIgnoreCase(action)) {
-            int acceptedCount = countAccepted(appDao.findByCourseId(courseId));
-            if (acceptedCount >= course.getTaNeedCount()) {
-                session.setAttribute("errorMessage", "该课程 TA 名额已满，无法继续通过");
-                response.sendRedirect(request.getContextPath() + "/courses/manage?id=" + courseId);
-                return;
+            try {
+                recruitmentService.reviewCourseApplication(user, courseId, applicationId, true);
+                session.setAttribute("successMessage", "申请已通过");
+            } catch (IllegalArgumentException | IllegalStateException ex) {
+                session.setAttribute("errorMessage", ex.getMessage());
             }
-            appDao.updateStatus(applicationId, Application.Status.ACCEPTED);
-            session.setAttribute("successMessage", "申请已通过");
         } else if ("reject".equalsIgnoreCase(action)) {
-            appDao.updateStatus(applicationId, Application.Status.REJECTED);
-            session.setAttribute("successMessage", "申请已拒绝");
+            try {
+                recruitmentService.reviewCourseApplication(user, courseId, applicationId, false);
+                session.setAttribute("successMessage", "申请已拒绝");
+            } catch (IllegalArgumentException | IllegalStateException ex) {
+                session.setAttribute("errorMessage", ex.getMessage());
+            }
         } else {
             session.setAttribute("errorMessage", "未知操作类型");
         }
@@ -120,19 +119,6 @@ public class CourseManageServlet extends BaseServlet {
                 || "TEACHER".equalsIgnoreCase(user.getRole())
                 || "Teacher".equals(user.getRole());
         return isMo && user.getUserId() != null && user.getUserId().equals(course.getTeacher());
-    }
-
-    private int countAccepted(List<Application> apps) {
-        int count = 0;
-        if (apps == null) {
-            return 0;
-        }
-        for (Application app : apps) {
-            if (app != null && app.getStatusEnum() == Application.Status.ACCEPTED) {
-                count++;
-            }
-        }
-        return count;
     }
 
     private static String trimToNull(String s) {
