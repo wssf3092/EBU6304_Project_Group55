@@ -14,7 +14,8 @@ import static org.junit.jupiter.api.Assertions.*;
  */
 class CourseDaoTest {
 
-    private CourseDao courseDao;
+    @TempDir
+    Path tempDir;
 
     @BeforeEach
     void setUp() {

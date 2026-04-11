@@ -1,16 +1,18 @@
 package com.group55.ta.dao;
 
+import com.group55.ta.model.Role;
 import com.group55.ta.model.User;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
- * Unit tests for UserDao based on TDD expectations.
+ * UserDao JSON persistence tests (isolated {@code data} root).
  */
 class UserDaoTest {
 

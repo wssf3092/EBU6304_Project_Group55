@@ -1,84 +1,34 @@
 package com.group55.ta.model;
 
-import java.io.Serializable;
+import com.group55.ta.util.DateTimeUtil;
 
 /**
- * User model representing a system user (Student, Teacher, or Admin).
- *
- * <p>CSV format in {@code data/users.txt}:
- * {@code username,password,email,fullName,role}</p>
- *
- * @author Group 55
+ * User account model (JSON per role folder under {@code data/users/}).
  */
-public class User implements Serializable {
-
-    private String username;
-    private String password;
-    private String role;
-    private String fullName;
+public class User {
+    private String userId;
+    private String name;
     private String email;
+    /** Step 3 will store real hash; Step 2 may still hold plaintext for migration. */
+    private String passwordHash;
+    private String role;
+    private boolean active;
+    private String createdAt;
 
-    /** No-arg constructor. */
-    public User() {
+    public String getUserId() {
+        return userId;
     }
 
-    /**
-     * Full constructor matching test expectations.
-     *
-     * @param username the unique login name
-     * @param password the plain-text password
-     * @param role     the role string, e.g. "Student", "Teacher", "Admin"
-     * @param fullName the user's display name
-     * @param email    the user's email address
-     */
-    public User(String username, String password, String role, String fullName, String email) {
-        this.username = username;
-        this.password = password;
-        this.role = role;
-        this.fullName = fullName;
-        this.email = email;
+    public void setUserId(String userId) {
+        this.userId = userId;
     }
 
-    // ---- Getters & Setters ----
-
-    public String getUsername() {
-        return username;
-    }
-
-    public void setUsername(String username) {
-        this.username = username;
-    }
-
-    public String getPassword() {
-        return password;
-    }
-
-    public void setPassword(String password) {
-        this.password = password;
-    }
-
-    public String getRole() {
-        return role;
-    }
-
-    public void setRole(String role) {
-        this.role = role;
-    }
-
-    public String getFullName() {
-        return fullName;
-    }
-
-    public void setFullName(String fullName) {
-        this.fullName = fullName;
-    }
-
-    /**
-     * Alias for {@link #getFullName()} to support JSP EL expressions like
-     * {@code ${user.name}}.
-     */
     public String getName() {
-        return fullName;
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
     }
 
     public String getEmail() {
@@ -89,8 +39,48 @@ public class User implements Serializable {
         this.email = email;
     }
 
-    @Override
-    public String toString() {
-        return "User{username='" + username + "', role='" + role + "', fullName='" + fullName + "'}";
+    public String getPasswordHash() {
+        return passwordHash;
+    }
+
+    public void setPasswordHash(String passwordHash) {
+        this.passwordHash = passwordHash;
+    }
+
+    public String getRole() {
+        return role;
+    }
+
+    public void setRole(String role) {
+        this.role = role;
+    }
+
+    public boolean isActive() {
+        return active;
+    }
+
+    public void setActive(boolean active) {
+        this.active = active;
+    }
+
+    public String getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(String createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public Role getRoleEnum() {
+        return Role.fromString(role);
+    }
+
+    public String getRoleLabel() {
+        Role value = getRoleEnum();
+        return value == null ? role : value.getLabel();
+    }
+
+    public String getDisplayCreatedAt() {
+        return DateTimeUtil.formatDateTime(createdAt);
     }
 }

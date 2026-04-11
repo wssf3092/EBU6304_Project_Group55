@@ -1,128 +1,149 @@
 package com.group55.ta.dao;
 
+import com.group55.ta.model.Role;
 import com.group55.ta.model.User;
-import com.group55.ta.util.FileStorageUtil;
+import com.group55.ta.util.AppPaths;
+import com.group55.ta.util.DateTimeUtil;
+import com.group55.ta.util.JsonFileUtil;
+import com.group55.ta.util.ValidationUtil;
 
+import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Optional;
 
 /**
- * Data Access Object for {@link User} entities.
- * Persists user data to a CSV text file.
- *
- * <p>CSV line format: {@code username,password,email,fullName,role}</p>
- *
- * @author Group 55
+ * User accounts stored as {@code data/users/{role}/{userId}.json}.
  */
 public class UserDao {
-
-    private static final String DEFAULT_FILE = "data/users.txt";
-    private final String filePath;
-
-    public UserDao() {
-        this.filePath = DEFAULT_FILE;
-    }
-
-    public UserDao(String filePath) {
-        this.filePath = filePath;
-    }
+    private static final Object LOCK = new Object();
 
     /**
-     * Authenticate a user by username and password.
-     *
-     * @return the matching {@link User} if credentials are valid, otherwise {@code null}
+     * Step 2: plain-text compare on {@code passwordHash} until Step 3 hashing.
      */
-    public User authenticate(String username, String password) {
-        User user = findByUsername(username);
-        if (user != null && user.getPassword() != null && user.getPassword().equals(password)) {
+    public Optional<User> authenticate(String emailOrId, String password) {
+        if (ValidationUtil.isBlank(emailOrId) || password == null) {
+            return Optional.empty();
+        }
+        Optional<User> user = findByEmail(emailOrId);
+        if (!user.isPresent()) {
+            user = findById(emailOrId.trim());
+        }
+        if (!user.isPresent()) {
+            return Optional.empty();
+        }
+        User u = user.get();
+        if (!u.isActive()) {
+            return Optional.empty();
+        }
+        if (!password.equals(u.getPasswordHash())) {
+            return Optional.empty();
+        }
+        return Optional.of(u);
+    }
+
+    public Optional<User> findByEmail(String email) {
+        String normalized = ValidationUtil.normalizeEmail(email);
+        return listAll().stream()
+                .filter(user -> normalized.equals(ValidationUtil.normalizeEmail(user.getEmail())))
+                .findFirst();
+    }
+
+    public Optional<User> findById(String userId) {
+        if (ValidationUtil.isBlank(userId)) {
+            return Optional.empty();
+        }
+        for (Role role : Role.values()) {
+            Path file = AppPaths.users(role).resolve(userId + ".json");
+            Optional<User> user = JsonFileUtil.read(file, User.class);
+            if (user.isPresent()) {
+                return user;
+            }
+        }
+        return Optional.empty();
+    }
+
+    public List<User> listByRole(Role role) {
+        synchronized (LOCK) {
+            return JsonFileUtil.readAll(AppPaths.users(role), User.class);
+        }
+    }
+
+    public List<User> listAll() {
+        synchronized (LOCK) {
+            List<User> users = new ArrayList<>();
+            for (Role role : Role.values()) {
+                users.addAll(JsonFileUtil.readAll(AppPaths.users(role), User.class));
+            }
+            users.sort(Comparator.comparing(User::getCreatedAt, Comparator.nullsLast(String::compareTo)));
+            return users;
+        }
+    }
+
+    public User create(String name, String email, String passwordHash, Role role) {
+        synchronized (LOCK) {
+            Optional<User> existing = findByEmail(email);
+            if (existing.isPresent()) {
+                throw new IllegalStateException("Email already registered.");
+            }
+            User user = new User();
+            user.setUserId(nextUserId(role));
+            user.setName(ValidationUtil.trim(name));
+            user.setEmail(ValidationUtil.normalizeEmail(email));
+            user.setPasswordHash(passwordHash);
+            user.setRole(role.name());
+            user.setActive(true);
+            user.setCreatedAt(DateTimeUtil.nowIso());
+            saveInternal(user, role);
             return user;
         }
-        return null;
     }
 
-    /**
-     * Find a user by their unique username.
-     *
-     * @return the {@link User} if found, otherwise {@code null}
-     */
-    public User findByUsername(String username) {
-        if (username == null) return null;
-        List<User> all = findAll();
-        if (all == null) return null;
-        for (User u : all) {
-            if (username.equals(u.getUsername())) {
-                return u;
+    public void update(User user) {
+        synchronized (LOCK) {
+            Role r = Role.fromString(user.getRole());
+            if (r == null) {
+                throw new IllegalStateException("Invalid role.");
+            }
+            saveInternal(user, r);
+        }
+    }
+
+    public boolean setActive(String userId, boolean active) {
+        synchronized (LOCK) {
+            Optional<User> target = findById(userId);
+            if (!target.isPresent()) {
+                return false;
+            }
+            User user = target.get();
+            user.setActive(active);
+            saveInternal(user, Role.fromString(user.getRole()));
+            return true;
+        }
+    }
+
+    private void saveInternal(User user, Role role) {
+        Path file = AppPaths.users(role).resolve(user.getUserId() + ".json");
+        JsonFileUtil.write(file, user);
+    }
+
+    private String nextUserId(Role role) {
+        List<User> users = listByRole(role);
+        String prefix = role.getIdPrefix();
+        int max = 0;
+        for (User user : users) {
+            String userId = user.getUserId();
+            if (userId == null || !userId.startsWith(prefix + "_")) {
+                continue;
+            }
+            String suffix = userId.substring(prefix.length() + 1);
+            try {
+                max = Math.max(max, Integer.parseInt(suffix));
+            } catch (NumberFormatException ignored) {
+                // skip
             }
         }
-        return null;
-    }
-
-    /**
-     * Save (append) a new user. If the username already exists, returns {@code false}.
-     *
-     * @return {@code true} if saved successfully, {@code false} otherwise
-     */
-    public boolean save(User user) {
-        if (user == null || user.getUsername() == null) return false;
-        if (findByUsername(user.getUsername()) != null) return false;
-
-        String line = toCsvLine(user);
-        String existing = FileStorageUtil.readFile(filePath);
-        if (existing != null && !existing.trim().isEmpty()) {
-            return FileStorageUtil.appendToFile(filePath, "\n" + line);
-        } else {
-            return FileStorageUtil.writeFile(filePath, line);
-        }
-    }
-
-    /**
-     * Return all users from the data file.
-     */
-    public List<User> findAll() {
-        List<String> lines = FileStorageUtil.readLines(filePath);
-        if (lines == null) return new ArrayList<>();
-        List<User> users = new ArrayList<>();
-        for (String line : lines) {
-            User u = fromCsvLine(line);
-            if (u != null) {
-                users.add(u);
-            }
-        }
-        return users;
-    }
-
-    /**
-     * Clear all data in the file (test utility).
-     */
-    public void clearAll() {
-        FileStorageUtil.writeFile(filePath, "");
-    }
-
-    // ---- CSV helpers ----
-
-    private String toCsvLine(User user) {
-        return escape(user.getUsername()) + "," +
-               escape(user.getPassword()) + "," +
-               escape(user.getEmail()) + "," +
-               escape(user.getFullName()) + "," +
-               escape(user.getRole());
-    }
-
-    private User fromCsvLine(String line) {
-        if (line == null || line.trim().isEmpty()) return null;
-        String[] parts = line.split(",", -1);
-        if (parts.length < 5) return null;
-        // CSV order: username,password,email,fullName,role
-        String username = parts[0].trim();
-        String password = parts[1].trim();
-        String email = parts[2].trim();
-        String fullName = parts[3].trim();
-        String role = parts[4].trim();
-        // Constructor order: username, password, role, fullName, email
-        return new User(username, password, role, fullName, email);
-    }
-
-    private static String escape(String s) {
-        return s == null ? "" : s;
+        return prefix + "_" + String.format("%03d", max + 1);
     }
 }

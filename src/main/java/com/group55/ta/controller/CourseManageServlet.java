@@ -4,6 +4,7 @@ import com.group55.ta.dao.ApplicationDao;
 import com.group55.ta.dao.CourseDao;
 import com.group55.ta.model.Application;
 import com.group55.ta.model.Course;
+import com.group55.ta.model.Role;
 import com.group55.ta.model.User;
 
 import java.io.IOException;
@@ -38,7 +39,7 @@ public class CourseManageServlet extends BaseServlet {
             return;
         }
 
-        if (!isTeacherOwner(user, course)) {
+        if (!isMoOwner(user, course)) {
             session.setAttribute("errorMessage", "无权限管理该课程");
             response.sendRedirect(request.getContextPath() + "/dashboard");
             return;
@@ -83,7 +84,7 @@ public class CourseManageServlet extends BaseServlet {
 
         CourseDao courseDao = new CourseDao();
         Course course = courseDao.findById(courseId);
-        if (course == null || !isTeacherOwner(user, course)) {
+        if (course == null || !isMoOwner(user, course)) {
             session.setAttribute("errorMessage", "无权限管理该课程");
             response.sendRedirect(request.getContextPath() + "/dashboard");
             return;
@@ -91,13 +92,13 @@ public class CourseManageServlet extends BaseServlet {
 
         ApplicationDao appDao = new ApplicationDao();
         if ("approve".equalsIgnoreCase(action)) {
-            int approvedCount = countApproved(appDao.findByCourseId(courseId));
-            if (approvedCount >= course.getTaNeedCount()) {
+            int acceptedCount = countAccepted(appDao.findByCourseId(courseId));
+            if (acceptedCount >= course.getTaNeedCount()) {
                 session.setAttribute("errorMessage", "该课程 TA 名额已满，无法继续通过");
                 response.sendRedirect(request.getContextPath() + "/courses/manage?id=" + courseId);
                 return;
             }
-            appDao.updateStatus(applicationId, Application.Status.APPROVED);
+            appDao.updateStatus(applicationId, Application.Status.ACCEPTED);
             session.setAttribute("successMessage", "申请已通过");
         } else if ("reject".equalsIgnoreCase(action)) {
             appDao.updateStatus(applicationId, Application.Status.REJECTED);
@@ -109,22 +110,25 @@ public class CourseManageServlet extends BaseServlet {
         response.sendRedirect(request.getContextPath() + "/courses/manage?id=" + courseId);
     }
 
-    private boolean isTeacherOwner(User user, Course course) {
+    private boolean isMoOwner(User user, Course course) {
         if (user == null || course == null) {
             return false;
         }
-        String role = user.getRole();
-        boolean isTeacher = "TEACHER".equalsIgnoreCase(role) || "Teacher".equals(role);
-        return isTeacher && user.getUsername() != null && user.getUsername().equals(course.getTeacherUsername());
+        Role roleEnum = user.getRoleEnum();
+        boolean isMo = roleEnum == Role.MO
+                || "MO".equalsIgnoreCase(user.getRole())
+                || "TEACHER".equalsIgnoreCase(user.getRole())
+                || "Teacher".equals(user.getRole());
+        return isMo && user.getUserId() != null && user.getUserId().equals(course.getTeacher());
     }
 
-    private int countApproved(List<Application> apps) {
+    private int countAccepted(List<Application> apps) {
         int count = 0;
         if (apps == null) {
             return 0;
         }
         for (Application app : apps) {
-            if (app != null && app.getStatus() == Application.Status.APPROVED) {
+            if (app != null && app.getStatusEnum() == Application.Status.ACCEPTED) {
                 count++;
             }
         }
@@ -139,4 +143,3 @@ public class CourseManageServlet extends BaseServlet {
         return t.isEmpty() ? null : t;
     }
 }
-
