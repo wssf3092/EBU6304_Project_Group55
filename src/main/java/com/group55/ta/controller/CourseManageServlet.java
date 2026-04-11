@@ -10,37 +10,39 @@ import java.io.IOException;
 import java.util.List;
 
 import javax.servlet.ServletException;
+import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
+@WebServlet("/mo/courses/manage")
 public class CourseManageServlet extends BaseServlet {
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         HttpSession session = request.getSession(false);
-        User user = session == null ? null : (User) session.getAttribute("user");
+        User user = currentUser(request);
         if (user == null) {
-            response.sendRedirect(request.getContextPath() + "/login");
+            redirect(request, response, "/auth/login");
             return;
         }
 
         String courseId = trimToNull(request.getParameter("id"));
         if (courseId == null) {
-            response.sendRedirect(request.getContextPath() + "/dashboard");
+            redirect(request, response, "/mo/dashboard");
             return;
         }
 
         RecruitmentService recruitmentService = new RecruitmentService();
         Course course = recruitmentService.findCourse(courseId);
         if (course == null) {
-            response.sendRedirect(request.getContextPath() + "/dashboard");
+            redirect(request, response, "/mo/dashboard");
             return;
         }
 
         if (!isMoOwner(user, course)) {
             session.setAttribute("errorMessage", "无权限管理该课程");
-            response.sendRedirect(request.getContextPath() + "/dashboard");
+            redirect(request, response, "/mo/dashboard");
             return;
         }
 
@@ -65,9 +67,9 @@ public class CourseManageServlet extends BaseServlet {
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         HttpSession session = request.getSession(false);
-        User user = session == null ? null : (User) session.getAttribute("user");
+        User user = currentUser(request);
         if (user == null) {
-            response.sendRedirect(request.getContextPath() + "/login");
+            redirect(request, response, "/auth/login");
             return;
         }
 
@@ -76,7 +78,7 @@ public class CourseManageServlet extends BaseServlet {
         String action = trimToNull(request.getParameter("action"));
         if (courseId == null || applicationId == null || action == null) {
             session.setAttribute("errorMessage", "参数不完整，无法更新申请状态");
-            response.sendRedirect(request.getContextPath() + "/dashboard");
+            redirect(request, response, "/mo/dashboard");
             return;
         }
 
@@ -84,7 +86,7 @@ public class CourseManageServlet extends BaseServlet {
         Course course = recruitmentService.findCourse(courseId);
         if (course == null || !isMoOwner(user, course)) {
             session.setAttribute("errorMessage", "无权限管理该课程");
-            response.sendRedirect(request.getContextPath() + "/dashboard");
+            redirect(request, response, "/mo/dashboard");
             return;
         }
 
@@ -106,7 +108,7 @@ public class CourseManageServlet extends BaseServlet {
             session.setAttribute("errorMessage", "未知操作类型");
         }
 
-        response.sendRedirect(request.getContextPath() + "/courses/manage?id=" + courseId);
+        response.sendRedirect(request.getContextPath() + "/mo/courses/manage?id=" + courseId);
     }
 
     private boolean isMoOwner(User user, Course course) {

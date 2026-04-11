@@ -1,8 +1,11 @@
 package com.group55.ta.controller;
 
+import com.group55.ta.model.Role;
+
 import java.io.IOException;
 
 import javax.servlet.ServletException;
+import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -10,6 +13,7 @@ import com.group55.ta.model.Role;
 import com.group55.ta.service.AuthService;
 import com.group55.ta.util.ValidationUtil;
 
+@WebServlet("/auth/register")
 public class RegisterServlet extends BaseServlet {
 
     @Override
@@ -70,9 +74,6 @@ public class RegisterServlet extends BaseServlet {
         response.sendRedirect(request.getContextPath() + "/login");
     }
 
-    /**
-     * Accepts UI values TA/MO/ADMIN or legacy Student/Teacher.
-     */
     private static Role mapRegistrationRole(String roleRaw) {
         if (roleRaw == null) {
             return Role.TA;

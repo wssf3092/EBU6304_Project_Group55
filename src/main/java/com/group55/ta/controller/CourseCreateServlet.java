@@ -9,29 +9,29 @@ import java.io.IOException;
 import java.util.UUID;
 
 import javax.servlet.ServletException;
+import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
 
+@WebServlet("/mo/courses/new")
 public class CourseCreateServlet extends BaseServlet {
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        request.setAttribute("rolePrefix", "/mo");
         forwardToView(request, response, "course-create");
     }
 
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        HttpSession session = request.getSession(false);
-        User user = session == null ? null : (User) session.getAttribute("user");
+        User user = currentUser(request);
         if (user == null) {
-            response.sendRedirect(request.getContextPath() + "/login");
+            redirect(request, response, "/auth/login");
             return;
         }
         Role roleEnum = user.getRoleEnum();
-        if (roleEnum != Role.MO && !"MO".equalsIgnoreCase(user.getRole())
-                && !"TEACHER".equalsIgnoreCase(user.getRole()) && !"Teacher".equals(user.getRole())) {
-            response.sendRedirect(request.getContextPath() + "/dashboard");
+        if (roleEnum != Role.MO) {
+            redirect(request, response, homePathFor(user));
             return;
         }
 
@@ -39,6 +39,7 @@ public class CourseCreateServlet extends BaseServlet {
         String taNeedCountRaw = trimToNull(request.getParameter("taNeedCount"));
         String description = trimToNull(request.getParameter("description"));
 
+        request.setAttribute("rolePrefix", "/mo");
         request.setAttribute("courseName", courseName);
         request.setAttribute("taNeedCount", taNeedCountRaw);
         request.setAttribute("description", description == null ? "" : description);
@@ -74,7 +75,7 @@ public class CourseCreateServlet extends BaseServlet {
         CourseDao dao = new CourseDao();
         dao.save(course);
 
-        response.sendRedirect(request.getContextPath() + "/dashboard");
+        redirect(request, response, "/mo/dashboard");
     }
 
     private static String trimToNull(String s) {

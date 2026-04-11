@@ -10,15 +10,15 @@
 </head>
 <body>
 <nav class="navbar">
-    <a href="${pageContext.request.contextPath}/dashboard" class="nav-brand">TA System</a>
+    <a href="${pageContext.request.contextPath}${rolePrefix}/dashboard" class="nav-brand">TA System</a>
     <div class="nav-links">
-        <a href="${pageContext.request.contextPath}/dashboard" class="nav-link" data-page="dashboard">首页</a>
-        <a href="${pageContext.request.contextPath}/courses" class="nav-link" data-page="courses">课程列表</a>
+        <a href="${pageContext.request.contextPath}/mo/dashboard" class="nav-link" data-page="dashboard">首页</a>
+        <a href="${pageContext.request.contextPath}/mo/dashboard" class="nav-link" data-page="courses">我的课程</a>
     </div>
     <div class="nav-user">
-        <span class="user-badge">教师</span>
-        <span>欢迎, ${sessionScope.user.name}</span>
-        <a href="${pageContext.request.contextPath}/logout" class="btn btn-secondary btn-sm"
+        <span class="user-badge">${currentUser.navBadge}</span>
+        <span>欢迎, ${currentUser.name}</span>
+        <a href="${pageContext.request.contextPath}/auth/logout" class="btn btn-secondary btn-sm"
            onclick="return confirmAction('确定要注销登录吗？')">登出</a>
     </div>
 </nav>
@@ -90,11 +90,11 @@
                             </td>
                             <td style="padding: 1rem 0;">
                                 <c:if test="${app.status == 'PENDING'}">
-                                    <form method="post" action="${pageContext.request.contextPath}/courses/manage"
+                                    <form method="post" action="${pageContext.request.contextPath}/mo/courses/manage"
                                           class="d-flex gap-1">
                                         <input type="hidden" name="courseId" value="${course.id}">
                                         <input type="hidden" name="applicationId" value="${app.applicationId}">
-                                        <button type="submit" name="action" value="approve"
+                                        <button type="submit" name="action" value="accept"
                                                 class="btn btn-primary btn-sm" style="width: auto;">通过</button>
                                         <button type="submit" name="action" value="reject"
                                                 class="btn btn-secondary btn-sm"
@@ -114,11 +114,10 @@
     </div>
 
     <div class="mt-3">
-        <a href="${pageContext.request.contextPath}/dashboard" class="btn btn-secondary">返回主控台</a>
+        <a href="${pageContext.request.contextPath}/mo/dashboard" class="btn btn-secondary">返回主控台</a>
     </div>
 </div>
 
 <script src="${pageContext.request.contextPath}/static/js/main.js"></script>
 </body>
 </html>
-

@@ -80,6 +80,21 @@ public class User {
         return value == null ? role : value.getLabel();
     }
 
+    /** Short label for nav badges (Step 4 JSPs). */
+    public String getNavBadge() {
+        Role r = getRoleEnum();
+        if (r == Role.ADMIN) {
+            return "管理员";
+        }
+        if (r == Role.MO) {
+            return "MO";
+        }
+        if (r == Role.TA) {
+            return "TA";
+        }
+        return role != null ? role : "";
+    }
+
     public String getDisplayCreatedAt() {
         return DateTimeUtil.formatDateTime(createdAt);
     }

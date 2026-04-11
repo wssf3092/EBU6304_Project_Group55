@@ -10,16 +10,18 @@ import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import com.group55.ta.model.Course;
-import com.group55.ta.service.RecruitmentService;
-
-public class CourseListServlet extends BaseServlet {
+/**
+ * Admin workspace (all courses, read-only overview).
+ */
+@WebServlet("/admin/dashboard")
+public class AdminDashboardServlet extends BaseServlet {
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        RecruitmentService recruitmentService = new RecruitmentService();
-        List<Course> courses = recruitmentService.listAllCoursesEnriched();
+        request.setAttribute("rolePrefix", "/admin");
+        request.setAttribute("dashboardMode", "admin");
+        List<Course> courses = recruitmentService.listAllCoursesEnrichedForAdmin();
         request.setAttribute("courses", courses);
-        forwardToView(request, response, "course-list");
+        forwardToView(request, response, "dashboard");
     }
 }

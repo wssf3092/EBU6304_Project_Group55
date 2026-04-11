@@ -45,6 +45,15 @@ public enum Role {
                 return role;
             }
         }
+        if ("Student".equalsIgnoreCase(value)) {
+            return TA;
+        }
+        if ("Teacher".equalsIgnoreCase(value) || "TEACHER".equalsIgnoreCase(value)) {
+            return MO;
+        }
+        if ("Admin".equalsIgnoreCase(value)) {
+            return ADMIN;
+        }
         return null;
     }
 }

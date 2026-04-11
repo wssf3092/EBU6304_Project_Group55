@@ -1,8 +1,12 @@
 package com.group55.ta.controller;
 
+import com.group55.ta.model.Course;
+import com.group55.ta.model.User;
+
 import java.io.IOException;
 
 import javax.servlet.ServletException;
+import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
@@ -11,10 +15,12 @@ import com.group55.ta.model.Course;
 import com.group55.ta.model.User;
 import com.group55.ta.service.RecruitmentService;
 
+@WebServlet("/ta/courses/apply")
 public class ApplicationServlet extends BaseServlet {
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        request.setAttribute("rolePrefix", "/ta");
         String courseId = trimToNull(request.getParameter("courseId"));
         if (courseId != null) {
             RecruitmentService recruitmentService = new RecruitmentService();
@@ -28,10 +34,9 @@ public class ApplicationServlet extends BaseServlet {
 
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        HttpSession session = request.getSession(false);
-        User user = session == null ? null : (User) session.getAttribute("user");
+        User user = currentUser(request);
         if (user == null) {
-            response.sendRedirect(request.getContextPath() + "/login");
+            redirect(request, response, "/auth/login");
             return;
         }
 
@@ -57,7 +62,7 @@ public class ApplicationServlet extends BaseServlet {
             return;
         }
 
-        response.sendRedirect(request.getContextPath() + "/dashboard");
+        redirect(request, response, "/ta/dashboard");
     }
 
     private static String trimToNull(String s) {

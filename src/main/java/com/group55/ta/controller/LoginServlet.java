@@ -10,10 +10,22 @@ import javax.servlet.http.HttpSession;
 import com.group55.ta.model.User;
 import com.group55.ta.service.AuthService;
 
+import java.io.IOException;
+
+import javax.servlet.ServletException;
+import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+@WebServlet("/auth/login")
 public class LoginServlet extends BaseServlet {
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        User existing = sessionUser(request);
+        if (existing != null) {
+            redirect(request, response, homePathFor(existing));
+            return;
+        }
         forwardToView(request, response, "login");
     }
 
@@ -41,7 +53,6 @@ public class LoginServlet extends BaseServlet {
             request.setAttribute("errorMessage", ex.getMessage());
             request.setAttribute("username", identifier);
             forwardToView(request, response, "login");
-            return;
         }
         HttpSession session = request.getSession(true);
         session.setAttribute("user", user);
