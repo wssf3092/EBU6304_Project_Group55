@@ -1,12 +1,12 @@
 package com.group55.ta.model;
 
 /**
- * User roles supported by the system (Step 2 baseline).
+ * User roles supported by the system.
  */
 public enum Role {
     TA("tas", "TA", "TA Workspace", "/ta/dashboard"),
     MO("mos", "MO", "MO Workspace", "/mo/dashboard"),
-    ADMIN("admins", "ADMIN", "Admin Workspace", "/admin/dashboard");
+    ADMIN("admins", "ADM", "Admin Workspace", "/admin/workload");
 
     private final String folder;
     private final String idPrefix;
@@ -44,15 +44,6 @@ public enum Role {
             if (role.name().equalsIgnoreCase(value)) {
                 return role;
             }
-        }
-        if ("Student".equalsIgnoreCase(value)) {
-            return TA;
-        }
-        if ("Teacher".equalsIgnoreCase(value) || "TEACHER".equalsIgnoreCase(value)) {
-            return MO;
-        }
-        if ("Admin".equalsIgnoreCase(value)) {
-            return ADMIN;
         }
         return null;
     }

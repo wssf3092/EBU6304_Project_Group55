@@ -14,7 +14,7 @@ import java.util.List;
 import java.util.Optional;
 
 /**
- * User accounts stored as {@code data/users/{role}/{userId}.json}.
+ * DAO for user account files.
  */
 public class UserDao {
     private static final Object LOCK = new Object();
@@ -78,11 +78,11 @@ public class UserDao {
 
     public void update(User user) {
         synchronized (LOCK) {
-            Role r = Role.fromString(user.getRole());
-            if (r == null) {
+            Role role = Role.fromString(user.getRole());
+            if (role == null) {
                 throw new IllegalStateException("Invalid role.");
             }
-            saveInternal(user, r);
+            saveInternal(user, role);
         }
     }
 
@@ -106,20 +106,20 @@ public class UserDao {
 
     private String nextUserId(Role role) {
         List<User> users = listByRole(role);
-        String prefix = role.getIdPrefix();
         int max = 0;
         for (User user : users) {
             String userId = user.getUserId();
-            if (userId == null || !userId.startsWith(prefix + "_")) {
+            if (userId == null) {
                 continue;
             }
-            String suffix = userId.substring(prefix.length() + 1);
-            try {
-                max = Math.max(max, Integer.parseInt(suffix));
-            } catch (NumberFormatException ignored) {
-                // skip
+            String[] parts = userId.split("_");
+            if (parts.length == 2) {
+                try {
+                    max = Math.max(max, Integer.parseInt(parts[1]));
+                } catch (NumberFormatException ignored) {
+                }
             }
         }
-        return prefix + "_" + String.format("%03d", max + 1);
+        return role.getIdPrefix() + "_" + String.format("%03d", max + 1);
     }
 }

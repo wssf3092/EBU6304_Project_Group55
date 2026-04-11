@@ -4,7 +4,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 
 /**
- * Flash messages: session → request on next render, then cleared (Step 5).
+ * Simple flash message helper backed by session attributes.
  */
 public final class FlashUtil {
     public static final String SUCCESS_KEY = "flashSuccess";
@@ -21,9 +21,6 @@ public final class FlashUtil {
         put(request, ERROR_KEY, message);
     }
 
-    /**
-     * Moves flash keys from session to request attributes (one-shot display).
-     */
     public static void expose(HttpServletRequest request) {
         HttpSession session = request.getSession(false);
         if (session == null) {

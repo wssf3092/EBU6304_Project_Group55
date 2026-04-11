@@ -32,7 +32,7 @@ class UserDaoTest {
 
     @Test
     void createFindByEmailAndId() {
-        User u = userDao.create("Alice", "Alice@Example.COM", PasswordUtil.hash("secret12"), Role.TA);
+        User u = userDao.create("Alice", "Alice@Example.COM", PasswordUtil.sha256("secret12"), Role.TA);
 
         assertNotNull(u.getUserId());
         assertTrue(u.getUserId().startsWith("TA_"));

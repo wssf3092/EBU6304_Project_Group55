@@ -9,51 +9,40 @@ import com.group55.ta.util.ValidationUtil;
 import java.util.Optional;
 
 /**
- * Registration and authentication (hashed passwords).
+ * Authentication and registration logic.
  */
 public class AuthService {
     private final UserDao userDao = new UserDao();
 
-    public User register(String name, String email, String password, Role role) {
+    public User register(String name, String email, String password, String roleValue) {
+        Role role = Role.fromString(roleValue);
         if (role == null) {
-            throw new IllegalArgumentException("请选择有效角色。");
+            throw new IllegalArgumentException("Choose a valid account role.");
         }
         if (ValidationUtil.trim(name).length() < 2) {
-            throw new IllegalArgumentException("姓名至少 2 个字符。");
+            throw new IllegalArgumentException("Enter a full name with at least 2 characters.");
         }
         if (!ValidationUtil.isValidEmail(email)) {
-            throw new IllegalArgumentException("邮箱格式不正确。");
+            throw new IllegalArgumentException("Enter a valid email address.");
         }
         if (ValidationUtil.trim(password).length() < 6) {
-            throw new IllegalArgumentException("密码至少 6 位。");
+            throw new IllegalArgumentException("Password must contain at least 6 characters.");
         }
-        if (userDao.findByEmail(email).isPresent()) {
-            throw new IllegalArgumentException("该邮箱已注册。");
-        }
-        return userDao.create(name, email, PasswordUtil.hash(ValidationUtil.trim(password)), role);
+        return userDao.create(name, email, PasswordUtil.sha256(password), role);
     }
 
-    /**
-     * Login with email (normalized) or raw userId (e.g. TA_001).
-     */
-    public User authenticate(String identifier, String password) {
-        if (ValidationUtil.isBlank(identifier) || password == null) {
-            throw new IllegalArgumentException("邮箱/用户ID 和密码不能为空。");
-        }
-        String trimmedId = identifier.trim();
-        Optional<User> userOpt = userDao.findByEmail(trimmedId);
+    public User authenticate(String email, String password) {
+        Optional<User> userOpt = userDao.findByEmail(email);
         if (!userOpt.isPresent()) {
-            userOpt = userDao.findById(trimmedId);
-        }
-        if (!userOpt.isPresent()) {
-            throw new IllegalArgumentException("邮箱或密码错误。");
+            throw new IllegalArgumentException("Invalid email or password.");
         }
         User user = userOpt.get();
-        if (!user.isActive()) {
-            throw new IllegalStateException("该账号已被禁用。");
+        String hashed = PasswordUtil.sha256(ValidationUtil.trim(password));
+        if (!hashed.equals(user.getPasswordHash())) {
+            throw new IllegalArgumentException("Invalid email or password.");
         }
-        if (!PasswordUtil.verify(password, user.getPasswordHash())) {
-            throw new IllegalArgumentException("邮箱或密码错误。");
+        if (!user.isActive()) {
+            throw new IllegalStateException("This account is disabled.");
         }
         return user;
     }
