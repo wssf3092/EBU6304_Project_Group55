@@ -97,6 +97,28 @@ public class ApplicationDao {
         }
     }
 
+    /**
+     * 审核结果 + 可选备注与时间戳（Step 6）。
+     */
+    public boolean updateStatusAndReview(String applicationId, Status status, String reviewNote) {
+        synchronized (LOCK) {
+            Optional<Application> opt = findById(applicationId);
+            if (!opt.isPresent()) {
+                return false;
+            }
+            Application app = opt.get();
+            app.setStatusEnum(status);
+            app.setReviewedAt(DateTimeUtil.nowIso());
+            if (ValidationUtil.isBlank(reviewNote)) {
+                app.setReviewNote(null);
+            } else {
+                app.setReviewNote(ValidationUtil.trim(reviewNote));
+            }
+            save(app);
+            return true;
+        }
+    }
+
     public boolean hasApplied(String applicantId, String courseId) {
         return findAll().stream()
                 .anyMatch(a -> applicantId.equals(a.getApplicantId()) && courseId.equals(a.getCourseId()));

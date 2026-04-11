@@ -4,34 +4,38 @@
 <section class="panel">
     <div class="panel-head">
         <div>
-            <h2>我的申请</h2>
+            <h2><c:out value="${course.name}"/></h2>
+            <p class="cell-subtle"><c:out value="${course.description}"/></p>
         </div>
-        <a class="btn secondary" href="${pageContext.request.contextPath}/ta/courses">浏览课程</a>
+        <a class="btn secondary" href="${pageContext.request.contextPath}/mo/dashboard">返回仪表盘</a>
+    </div>
+</section>
+
+<section class="panel">
+    <div class="panel-head">
+        <h2>申请人列表</h2>
     </div>
     <c:choose>
         <c:when test="${empty applications}">
-            <div class="empty-state">
-                <h3>暂无申请记录</h3>
-                <p class="cell-subtle"><a href="${pageContext.request.contextPath}/ta/courses">去选课申请</a></p>
-            </div>
+            <div class="empty-state"><h3>暂无申请</h3></div>
         </c:when>
         <c:otherwise>
             <div class="table-wrap">
                 <table class="data-table">
                     <thead>
                     <tr>
-                        <th>课程</th>
-                        <th>教师</th>
+                        <th>申请人</th>
+                        <th>用户 ID</th>
                         <th>申请时间</th>
                         <th>状态</th>
-                        <th>审核备注</th>
+                        <th>操作</th>
                     </tr>
                     </thead>
                     <tbody>
-                    <c:forEach items="${applications}" var="app">
+                    <c:forEach var="app" items="${applications}">
                         <tr>
-                            <td><strong><c:out value="${app.courseName}"/></strong></td>
-                            <td><c:out value="${app.teacherName}"/></td>
+                            <td><strong><c:out value="${app.applicantName != null ? app.applicantName : app.applicantId}"/></strong></td>
+                            <td><c:out value="${app.applicantId}"/></td>
                             <td><c:out value="${app.applyDate}"/></td>
                             <td>
                                 <c:choose>
@@ -46,11 +50,16 @@
                                     </c:otherwise>
                                 </c:choose>
                             </td>
-                            <td class="cell-subtle">
-                                <c:if test="${not empty app.reviewNote}">
-                                    <c:out value="${app.reviewNote}"/>
+                            <td>
+                                <c:if test="${app.status == 'PENDING'}">
+                                    <c:url var="reviewLink" value="/mo/applications/review">
+                                        <c:param name="id" value="${app.applicationId}"/>
+                                    </c:url>
+                                    <a class="btn primary" style="display:inline-flex;" href="${reviewLink}">审核</a>
                                 </c:if>
-                                <c:if test="${empty app.reviewNote}">—</c:if>
+                                <c:if test="${app.status != 'PENDING' && not empty app.reviewNote}">
+                                    <span class="cell-subtle"><c:out value="${app.reviewNote}"/></span>
+                                </c:if>
                             </td>
                         </tr>
                     </c:forEach>

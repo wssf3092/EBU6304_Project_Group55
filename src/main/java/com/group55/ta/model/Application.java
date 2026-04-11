@@ -14,10 +14,15 @@ public class Application {
     private String status;
     private String appliedAt;
     private String statement;
+    /** MO 审核备注（Step 6）；可为空。 */
+    private String reviewNote;
+    /** ISO 审核时间（Step 6）。 */
+    private String reviewedAt;
 
     private transient String courseName;
     private transient String teacherName;
     private transient String applyDate;
+    private transient String applicantName;
 
     public String getApplicationId() {
         return applicationId;
@@ -102,6 +107,30 @@ public class Application {
 
     public void setStatement(String statement) {
         this.statement = statement;
+    }
+
+    public String getReviewNote() {
+        return reviewNote;
+    }
+
+    public void setReviewNote(String reviewNote) {
+        this.reviewNote = reviewNote;
+    }
+
+    public String getReviewedAt() {
+        return reviewedAt;
+    }
+
+    public void setReviewedAt(String reviewedAt) {
+        this.reviewedAt = reviewedAt;
+    }
+
+    public String getApplicantName() {
+        return applicantName;
+    }
+
+    public void setApplicantName(String applicantName) {
+        this.applicantName = applicantName;
     }
 
     public String getCourseName() {
