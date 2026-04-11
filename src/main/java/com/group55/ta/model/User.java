@@ -3,13 +3,12 @@ package com.group55.ta.model;
 import com.group55.ta.util.DateTimeUtil;
 
 /**
- * User account model (JSON per role folder under {@code data/users/}).
+ * User account model.
  */
 public class User {
     private String userId;
     private String name;
     private String email;
-    /** Step 3 will store real hash; Step 2 may still hold plaintext for migration. */
     private String passwordHash;
     private String role;
     private boolean active;
@@ -78,21 +77,6 @@ public class User {
     public String getRoleLabel() {
         Role value = getRoleEnum();
         return value == null ? role : value.getLabel();
-    }
-
-    /** Short label for nav badges (Step 4 JSPs). */
-    public String getNavBadge() {
-        Role r = getRoleEnum();
-        if (r == Role.ADMIN) {
-            return "管理员";
-        }
-        if (r == Role.MO) {
-            return "MO";
-        }
-        if (r == Role.TA) {
-            return "TA";
-        }
-        return role != null ? role : "";
     }
 
     public String getDisplayCreatedAt() {

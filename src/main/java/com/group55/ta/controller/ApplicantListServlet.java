@@ -1,68 +1,34 @@
 package com.group55.ta.controller;
 
-import com.group55.ta.model.Application;
-import com.group55.ta.model.Course;
-import com.group55.ta.model.Role;
 import com.group55.ta.model.User;
-
-import java.io.IOException;
-import java.util.List;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
 
 /**
- * MO 查看某课程的申请人列表（Step 6）。
+ * Applicant review page for a specific job.
  */
-@WebServlet("/mo/courses/applicants")
+@WebServlet("/mo/jobs/applicants")
 public class ApplicantListServlet extends BaseServlet {
-
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         User user = currentUser(request);
-        String courseId = trimToNull(request.getParameter("courseId"));
-        if (courseId == null) {
-            redirect(request, response, "/mo/dashboard");
-            return;
+        String jobId = request.getParameter("jobId");
+        String sort = request.getParameter("sort");
+        try {
+            request.setAttribute("job", recruitmentService.findJob(jobId).orElse(null));
+            request.setAttribute("sort", sort == null || sort.trim().isEmpty() ? "recent" : sort);
+            request.setAttribute("applicants", recruitmentService.listApplicantsForJob(user, jobId, sort));
+            render(request, response, "mo/applicants.jsp", "Review Applicants", "Compare evidence, inspect fit, and record final decisions.", "mo-applicants");
+        } catch (Exception ex) {
+            request.setAttribute("formError", ex.getMessage());
+            request.setAttribute("jobs", recruitmentService.listJobsForMo(user.getUserId()));
+            request.setAttribute("skillCatalog", recruitmentService.getSkillCatalog());
+            request.setAttribute("activityTypes", recruitmentService.getActivityTypes());
+            render(request, response, "mo/jobs.jsp", "Manage Jobs", "Create openings, monitor demand, and close positions when needed.", "mo-jobs");
         }
-
-        Course course = recruitmentService.findCourse(courseId);
-        if (course == null) {
-            redirect(request, response, "/mo/dashboard");
-            return;
-        }
-
-        if (!isMoOwner(user, course)) {
-            request.setAttribute("formError", "无权限查看该课程的申请。");
-            request.setAttribute("pageTitle", "仪表盘");
-            request.setAttribute("activeNav", "mo-dashboard");
-            request.setAttribute("courses", recruitmentService.listCoursesEnrichedForMo(user.getUserId()));
-            forwardToView(request, response, "mo/dashboard");
-            return;
-        }
-
-        List<Application> applications = recruitmentService.listApplicationsEnrichedForCourseMoView(courseId);
-        request.setAttribute("course", course);
-        request.setAttribute("applications", applications);
-        request.setAttribute("pageTitle", "申请人 · " + course.getName());
-        request.setAttribute("activeNav", "mo-dashboard");
-        forwardToView(request, response, "mo/applicants");
-    }
-
-    private boolean isMoOwner(User u, Course course) {
-        if (u == null || course == null) {
-            return false;
-        }
-        return u.getRoleEnum() == Role.MO && u.getUserId() != null && u.getUserId().equals(course.getTeacher());
-    }
-
-    private static String trimToNull(String s) {
-        if (s == null) {
-            return null;
-        }
-        String t = s.trim();
-        return t.isEmpty() ? null : t;
     }
 }

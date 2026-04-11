@@ -8,7 +8,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 
 /**
- * Centralized data directory paths (supports {@code -Dta.data.root}).
+ * Centralized project path utility.
  */
 public final class AppPaths {
     private static final Object LOCK = new Object();
@@ -43,12 +43,24 @@ public final class AppPaths {
         return getDataRoot().resolve("users").resolve(role.getFolder());
     }
 
-    public static Path courses() {
-        return getDataRoot().resolve("courses");
+    public static Path applicants() {
+        return getDataRoot().resolve("applicants");
+    }
+
+    public static Path cvs() {
+        return getDataRoot().resolve("cvs");
+    }
+
+    public static Path jobs() {
+        return getDataRoot().resolve("jobs");
     }
 
     public static Path applications() {
         return getDataRoot().resolve("applications");
+    }
+
+    public static Path aiCache() {
+        return getDataRoot().resolve("ai_cache");
     }
 
     private static void ensureStructure() {
@@ -56,8 +68,11 @@ public final class AppPaths {
             Files.createDirectories(getDataRoot().resolve("users").resolve("tas"));
             Files.createDirectories(getDataRoot().resolve("users").resolve("mos"));
             Files.createDirectories(getDataRoot().resolve("users").resolve("admins"));
-            Files.createDirectories(courses());
-            Files.createDirectories(applications());
+            Files.createDirectories(getDataRoot().resolve("applicants"));
+            Files.createDirectories(getDataRoot().resolve("cvs"));
+            Files.createDirectories(getDataRoot().resolve("jobs"));
+            Files.createDirectories(getDataRoot().resolve("applications"));
+            Files.createDirectories(getDataRoot().resolve("ai_cache"));
         } catch (IOException ex) {
             throw new IllegalStateException("Unable to create data directories", ex);
         }

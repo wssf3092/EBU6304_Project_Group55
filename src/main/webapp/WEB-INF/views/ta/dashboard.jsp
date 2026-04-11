@@ -1,37 +1,99 @@
-<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ include file="/WEB-INF/views/shared/app-start.jspf" %>
-
 <div class="metric-grid">
     <article class="metric-card">
-        <span>申请总数</span>
-        <strong><c:out value="${metrics.total}"/></strong>
+        <span>Open jobs</span>
+        <strong><c:out value="${metrics.openJobs}"/></strong>
     </article>
     <article class="metric-card">
-        <span>待审核</span>
-        <strong><c:out value="${metrics.pending}"/></strong>
+        <span>Applications</span>
+        <strong><c:out value="${metrics.applications}"/></strong>
     </article>
     <article class="metric-card">
-        <span>已通过</span>
+        <span>Accepted</span>
         <strong><c:out value="${metrics.accepted}"/></strong>
     </article>
     <article class="metric-card">
-        <span>已拒绝</span>
-        <strong><c:out value="${metrics.rejected}"/></strong>
+        <span>Capacity</span>
+        <strong><c:out value="${metrics.capacity}"/>h/week</strong>
     </article>
+</div>
+
+<div class="two-column">
+    <section class="panel">
+        <div class="panel-head">
+            <div>
+                <h2>Recommended Jobs</h2>
+            </div>
+            <a class="btn secondary" href="${pageContext.request.contextPath}/ta/jobs">All jobs</a>
+        </div>
+        <c:choose>
+            <c:when test="${empty recommendedJobs}">
+                <div class="empty-state">
+                    <h3>No recommendations</h3>
+                </div>
+            </c:when>
+            <c:otherwise>
+                <div class="stack-list">
+                    <c:forEach items="${recommendedJobs}" var="jobView">
+                        <a class="surface-link" href="${pageContext.request.contextPath}/ta/jobs?jobId=${jobView.job.jobId}">
+                            <div class="surface-link-head">
+                                <div>
+                                    <strong><c:out value="${jobView.job.title}"/></strong>
+                                    <span><c:out value="${jobView.job.module}"/> / <c:out value="${jobView.job.activityType}"/></span>
+                                </div>
+                                <span class="score-pill"><c:out value="${jobView.matchScore}"/>%</span>
+                            </div>
+                            <div class="badge-row">
+                                <c:forEach items="${jobView.matchedSkills}" var="skill">
+                                    <span class="badge success"><c:out value="${skill}"/></span>
+                                </c:forEach>
+                            </div>
+                        </a>
+                    </c:forEach>
+                </div>
+            </c:otherwise>
+        </c:choose>
+    </section>
+
+    <section class="panel">
+        <div class="panel-head">
+            <div>
+                <h2>Profile</h2>
+            </div>
+            <a class="btn secondary" href="${pageContext.request.contextPath}/ta/profile">Edit</a>
+        </div>
+        <div class="detail-stack">
+            <div class="stat-line">
+                <span>Profile completion</span>
+                <strong>${profile.complete ? 'Ready' : 'Needs attention'}</strong>
+            </div>
+            <div class="stat-line">
+                <span>CV status</span>
+                <strong>${profile.hasCv ? 'Uploaded' : 'Missing'}</strong>
+            </div>
+            <div class="stat-line">
+                <span>Skills listed</span>
+                <strong><c:out value="${fn:length(profile.skills)}"/></strong>
+            </div>
+            <div class="stat-line">
+                <span>Workload limit</span>
+                <strong><c:out value="${profile.maxWorkloadHoursPerWeek}"/>h/week</strong>
+            </div>
+        </div>
+    </section>
 </div>
 
 <section class="panel">
     <div class="panel-head">
         <div>
-            <h2>最近申请</h2>
+            <h2>Applications</h2>
         </div>
-        <a class="btn secondary" href="${pageContext.request.contextPath}/ta/applications">全部申请</a>
+        <a class="btn secondary" href="${pageContext.request.contextPath}/ta/applications">All</a>
     </div>
     <c:choose>
         <c:when test="${empty recentApplications}">
             <div class="empty-state">
-                <h3>暂无申请</h3>
-                <p class="cell-subtle">去<a href="${pageContext.request.contextPath}/ta/courses">浏览课程</a>提交第一份申请。</p>
+                <h3>No applications</h3>
             </div>
         </c:when>
         <c:otherwise>
@@ -39,31 +101,22 @@
                 <table class="data-table">
                     <thead>
                     <tr>
-                        <th>课程</th>
-                        <th>教师</th>
-                        <th>申请时间</th>
-                        <th>状态</th>
+                        <th>Position</th>
+                        <th>Applied</th>
+                        <th>Status</th>
+                        <th>Match</th>
                     </tr>
                     </thead>
                     <tbody>
-                    <c:forEach items="${recentApplications}" var="app">
+                    <c:forEach items="${recentApplications}" var="item">
                         <tr>
-                            <td><strong><c:out value="${app.courseName}"/></strong></td>
-                            <td><c:out value="${app.teacherName}"/></td>
-                            <td><c:out value="${app.applyDate}"/></td>
                             <td>
-                                <c:choose>
-                                    <c:when test="${app.status == 'PENDING'}">
-                                        <span class="status-chip status-pending">待审核</span>
-                                    </c:when>
-                                    <c:when test="${app.status == 'ACCEPTED'}">
-                                        <span class="status-chip status-accepted">已通过</span>
-                                    </c:when>
-                                    <c:otherwise>
-                                        <span class="status-chip status-rejected">已拒绝</span>
-                                    </c:otherwise>
-                                </c:choose>
+                                <strong><c:out value="${item.job.title}"/></strong>
+                                <div class="cell-subtle"><c:out value="${item.job.module}"/></div>
                             </td>
+                            <td><c:out value="${item.application.displayAppliedAt}"/></td>
+                            <td><span class="status-chip status-${item.application.status}"><c:out value="${item.application.status}"/></span></td>
+                            <td><c:out value="${item.matchScore}"/>%</td>
                         </tr>
                     </c:forEach>
                     </tbody>
@@ -72,5 +125,4 @@
         </c:otherwise>
     </c:choose>
 </section>
-
 <%@ include file="/WEB-INF/views/shared/app-end.jspf" %>

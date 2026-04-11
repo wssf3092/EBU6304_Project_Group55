@@ -32,20 +32,12 @@ public final class JsonFileUtil {
         }
     }
 
-    /**
-     * Read all {@code .json} files in a directory (sorted by filename).
-     */
     public static <T> List<T> readAll(Path directory, Class<T> clazz) {
         List<T> items = new ArrayList<>();
         for (Path path : listJsonFiles(directory)) {
             read(path, clazz).ifPresent(items::add);
         }
         return items;
-    }
-
-    /** Alias matching IMPROVEMENT-PLAN naming. */
-    public static <T> List<T> listAll(Path directory, Class<T> clazz) {
-        return readAll(directory, clazz);
     }
 
     public static void write(Path path, Object payload) {

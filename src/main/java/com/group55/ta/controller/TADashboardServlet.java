@@ -1,51 +1,30 @@
 package com.group55.ta.controller;
 
-import com.group55.ta.model.Application;
+import com.group55.ta.dto.ApplicationSummaryView;
+import com.group55.ta.model.ApplicantProfile;
 import com.group55.ta.model.User;
-
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.util.List;
 
+/**
+ * TA dashboard overview.
+ */
 @WebServlet("/ta/dashboard")
 public class TADashboardServlet extends BaseServlet {
-
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         User user = currentUser(request);
-        List<Application> apps = recruitmentService.listApplicationsEnrichedForApplicant(user.getUserId());
-
-        int pending = 0;
-        int accepted = 0;
-        int rejected = 0;
-        for (Application app : apps) {
-            Application.Status s = app.getStatusEnum();
-            if (s == Application.Status.PENDING) {
-                pending++;
-            } else if (s == Application.Status.ACCEPTED) {
-                accepted++;
-            } else if (s == Application.Status.REJECTED) {
-                rejected++;
-            }
-        }
-        Map<String, Integer> metrics = new HashMap<>();
-        metrics.put("total", apps.size());
-        metrics.put("pending", pending);
-        metrics.put("accepted", accepted);
-        metrics.put("rejected", rejected);
-        request.setAttribute("metrics", metrics);
-
-        List<Application> recent = apps.size() > 5 ? new ArrayList<>(apps.subList(0, 5)) : apps;
-        request.setAttribute("recentApplications", recent);
-        request.setAttribute("pageTitle", "仪表盘");
-        request.setAttribute("activeNav", "ta-dashboard");
-        forwardToView(request, response, "ta/dashboard");
+        ApplicantProfile profile = recruitmentService.findProfile(user.getUserId()).orElse(recruitmentService.getOrCreateProfile(user));
+        List<ApplicationSummaryView> applications = recruitmentService.listApplicationsForApplicant(user.getUserId());
+        request.setAttribute("profile", profile);
+        request.setAttribute("metrics", recruitmentService.buildTaMetrics(user));
+        request.setAttribute("recommendedJobs", recruitmentService.recommendedJobs(user, 4));
+        request.setAttribute("recentApplications", applications.stream().limit(5).toArray());
+        render(request, response, "ta/dashboard.jsp", "TA Dashboard", "Track profile readiness, opportunities, and application progress.", "ta-dashboard");
     }
 }

@@ -1,7 +1,7 @@
 package com.group55.ta.util;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 
 /**
@@ -38,6 +38,17 @@ public final class DateTimeUtil {
             return LocalDate.parse(dateValue).format(DISPLAY_DATE);
         } catch (Exception ex) {
             return dateValue;
+        }
+    }
+
+    public static boolean isPastDate(String dateValue) {
+        if (ValidationUtil.isBlank(dateValue)) {
+            return false;
+        }
+        try {
+            return LocalDate.parse(dateValue).isBefore(LocalDate.now());
+        } catch (Exception ex) {
+            return false;
         }
     }
 }

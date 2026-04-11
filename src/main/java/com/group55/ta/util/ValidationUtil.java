@@ -25,4 +25,14 @@ public final class ValidationUtil {
         String normalized = normalizeEmail(email);
         return normalized.matches("^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$");
     }
+
+    public static String sanitizeFileName(String fileName) {
+        String value = trim(fileName);
+        value = value.replace("\\", "_").replace("/", "_");
+        value = value.replaceAll("[^A-Za-z0-9._-]", "_");
+        if (value.length() > 64) {
+            value = value.substring(value.length() - 64);
+        }
+        return value;
+    }
 }

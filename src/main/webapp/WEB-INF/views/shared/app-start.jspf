@@ -2,55 +2,51 @@
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="en">
 <head>
     <meta charset="UTF-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title><c:out value="${pageTitle}"/> | 课程 TA 申请系统</title>
+    <title><c:out value="${pageTitle}"/> | TA Recruitment System</title>
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/app.css"/>
 </head>
 <body class="app-body" data-context-path="${pageContext.request.contextPath}">
 <div class="shell">
     <aside class="shell-sidebar">
         <div class="sidebar-brand">
-            <div class="sidebar-mark">55</div>
-            <strong>TA 工作台</strong>
+            <div class="sidebar-mark">TR</div>
+            <strong>TA Recruitment</strong>
         </div>
         <nav class="sidebar-nav">
-            <c:set var="isTa" value="${currentUser.role == 'TA' || currentUser.role == 'Student'}"/>
-            <c:set var="isMo" value="${currentUser.role == 'MO' || currentUser.role == 'Teacher'}"/>
-            <c:set var="isAdmin" value="${currentUser.role == 'ADMIN' || currentUser.role == 'Admin'}"/>
-            <c:if test="${isTa}">
-                <a class="nav-link ${activeNav == 'ta-dashboard' ? 'active' : ''}" href="${pageContext.request.contextPath}/ta/dashboard">仪表盘</a>
-                <a class="nav-link ${activeNav == 'ta-courses' ? 'active' : ''}" href="${pageContext.request.contextPath}/ta/courses">浏览课程</a>
-                <a class="nav-link ${activeNav == 'ta-applications' ? 'active' : ''}" href="${pageContext.request.contextPath}/ta/applications">我的申请</a>
+            <c:if test="${currentUser.role eq 'TA'}">
+                <a class="nav-link ${activeNav eq 'ta-dashboard' ? 'active' : ''}" href="${pageContext.request.contextPath}/ta/dashboard">Dashboard</a>
+                <a class="nav-link ${activeNav eq 'ta-profile' ? 'active' : ''}" href="${pageContext.request.contextPath}/ta/profile">Applicant Profile</a>
+                <a class="nav-link ${activeNav eq 'ta-jobs' ? 'active' : ''}" href="${pageContext.request.contextPath}/ta/jobs">Available Jobs</a>
+                <a class="nav-link ${activeNav eq 'ta-applications' ? 'active' : ''}" href="${pageContext.request.contextPath}/ta/applications">Applications</a>
             </c:if>
-            <c:if test="${isMo}">
-                <a class="nav-link ${activeNav == 'mo-dashboard' ? 'active' : ''}" href="${pageContext.request.contextPath}/mo/dashboard">仪表盘</a>
-                <a class="nav-link ${activeNav == 'mo-course-new' ? 'active' : ''}" href="${pageContext.request.contextPath}/mo/courses/new">发布课程</a>
+            <c:if test="${currentUser.role eq 'MO'}">
+                <a class="nav-link ${activeNav eq 'mo-dashboard' ? 'active' : ''}" href="${pageContext.request.contextPath}/mo/dashboard">Dashboard</a>
+                <a class="nav-link ${activeNav eq 'mo-jobs' ? 'active' : ''}" href="${pageContext.request.contextPath}/mo/jobs">Manage Jobs</a>
             </c:if>
-            <c:if test="${isAdmin}">
-                <a class="nav-link ${activeNav == 'admin-dashboard' ? 'active' : ''}" href="${pageContext.request.contextPath}/admin/dashboard">仪表盘</a>
-                <a class="nav-link ${activeNav == 'admin-users' ? 'active' : ''}" href="${pageContext.request.contextPath}/admin/users">用户管理</a>
+            <c:if test="${currentUser.role eq 'ADMIN'}">
+                <a class="nav-link ${activeNav eq 'admin-workload' ? 'active' : ''}" href="${pageContext.request.contextPath}/admin/workload">Workload</a>
+                <a class="nav-link ${activeNav eq 'admin-users' ? 'active' : ''}" href="${pageContext.request.contextPath}/admin/users">Users</a>
+                <a class="nav-link ${activeNav eq 'admin-jobs' ? 'active' : ''}" href="${pageContext.request.contextPath}/admin/jobs">Jobs</a>
             </c:if>
         </nav>
         <div class="sidebar-foot">
-            <span class="role-chip"><c:out value="${currentUser.navBadge}"/></span>
+            <span class="role-chip"><c:out value="${currentUser.roleLabel}"/></span>
         </div>
     </aside>
     <main class="shell-main">
         <header class="topbar">
-            <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
-                <button type="button" class="btn secondary shell-sidebar-toggle" data-sidebar-toggle aria-label="打开菜单">菜单</button>
-                <h1><c:out value="${pageTitle}"/></h1>
-            </div>
+            <h1><c:out value="${pageTitle}"/></h1>
             <div class="topbar-actions">
                 <div class="user-pill">
                     <strong><c:out value="${currentUser.name}"/></strong>
                     <span><c:out value="${currentUser.email}"/></span>
                 </div>
-                <form method="post" action="${pageContext.request.contextPath}/auth/logout" data-confirm="确定要注销登录吗？">
-                    <button class="btn secondary" type="submit">退出</button>
+                <form method="post" action="${pageContext.request.contextPath}/auth/logout">
+                    <button class="btn secondary" type="submit">Sign Out</button>
                 </form>
             </div>
         </header>
