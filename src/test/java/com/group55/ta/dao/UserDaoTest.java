@@ -2,12 +2,10 @@ package com.group55.ta.dao;
 
 import com.group55.ta.model.Role;
 import com.group55.ta.model.User;
-import com.group55.ta.util.AppPaths;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.io.TempDir;
 
-import java.nio.file.Path;
 import java.util.List;
 import java.util.Optional;
 
@@ -18,53 +16,61 @@ import static org.junit.jupiter.api.Assertions.*;
  */
 class UserDaoTest {
 
-    @TempDir
-    Path tempDir;
+    private UserDao userDao;
 
     @BeforeEach
     void setUp() {
-        AppPaths.overrideDataRoot(tempDir);
+        userDao = new UserDao("data/test_users.txt");
+        userDao.clearAll();
+    }
+
+    @AfterEach
+    void tearDown() {
+        userDao.clearAll();
     }
 
     @Test
-    void createAndFindByEmail() {
-        UserDao dao = new UserDao();
-        User u = dao.create("Test TA", "ta@test.edu", "secret", Role.TA);
+    void testSaveAndFindByUsername() {
+        User user = new User("teststudent", "password123", "Student", "Test Student", "test@university.edu");
 
-        assertNotNull(u.getUserId());
-        assertTrue(u.getUserId().startsWith("TA_"));
-        Optional<User> found = dao.findByEmail("TA@Test.Edu");
-        assertTrue(found.isPresent());
-        assertEquals(u.getUserId(), found.get().getUserId());
+        boolean saveResult = userDao.save(user);
+        assertTrue(saveResult, "User should be saved successfully");
+
+        User retrievedUser = userDao.findByUsername("teststudent");
+        assertNotNull(retrievedUser, "Should find the user uniquely by username");
+        assertEquals("teststudent", retrievedUser.getUsername(), "Usernames should exactly match");
+        assertEquals("Student", retrievedUser.getRole(), "Stored roles should match");
     }
 
     @Test
-    void authenticateSuccess() {
-        UserDao dao = new UserDao();
-        dao.create("Auth User", "auth@test.edu", "correctpass", Role.MO);
+    void testAuthenticateSuccess() {
+        User user = new User("authuser", "correctpass", "Teacher", "Auth Teacher", "auth@university.edu");
+        userDao.save(user);
 
-        Optional<User> u = dao.authenticate("auth@test.edu", "correctpass");
-        assertTrue(u.isPresent());
-        assertEquals("MO", u.get().getRole());
+        User authenticatedUser = userDao.authenticate("authuser", "correctpass");
+        assertNotNull(authenticatedUser, "Authentication should yield user object with correct credentials");
+        assertEquals("authuser", authenticatedUser.getUsername());
     }
 
     @Test
-    void authenticateFailure() {
-        UserDao dao = new UserDao();
-        dao.create("X", "x@test.edu", "pw", Role.TA);
+    void testAuthenticateFailure() {
+        User user = new User("failuser", "correctpass", "Student", "Fail Student", "fail@university.edu");
+        userDao.save(user);
 
-        assertTrue(dao.authenticate("x@test.edu", "wrong").isEmpty());
-        assertTrue(dao.authenticate("nobody@test.edu", "pw").isEmpty());
+        User wrongPassUser = userDao.authenticate("failuser", "wrongpass");
+        assertNull(wrongPassUser, "Authentication should prevent access with incorrect password");
+
+        User nonExistent = userDao.authenticate("nobody", "pass");
+        assertNull(nonExistent, "Authentication should fail entirely for a non-existent account");
     }
 
     @Test
-    void findByIdAndListAll() {
-        UserDao dao = new UserDao();
-        User a = dao.create("A", "a@test.edu", "p", Role.TA);
-        User b = dao.create("B", "b@test.edu", "p", Role.MO);
+    void testFindAll() {
+        userDao.save(new User("user1", "pass1", "Student", "Name1", "email1"));
+        userDao.save(new User("user2", "pass2", "Teacher", "Name2", "email2"));
 
-        assertTrue(dao.findById(a.getUserId()).isPresent());
-        List<User> all = dao.listAll();
-        assertEquals(2, all.size());
+        List<User> users = userDao.findAll();
+        assertNotNull(users, "User list should not be null");
+        assertEquals(2, users.size(), "Should retrieve correctly 2 seeded users");
     }
 }
