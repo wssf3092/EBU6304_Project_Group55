@@ -1,0 +1,19 @@
+{
+  "jobId": "JOB_005",
+  "moId": "MO_004",
+  "title": "test-1",
+  "module": "EBU1234",
+  "activityType": "Office Hours",
+  "description": "The Office Hour Teaching Assistant will provide real-time academic support to students during scheduled office hours, focusing on programming fundamentals and algorithmic problem-solving.\r\nKey responsibilities include:\r\nAssisting students with debugging code, explaining syntax, and clarifying core concepts in programming languages such as Python, Java, C++, or other relevant languages.\r\nGuiding students through understanding, designing, and analyzing basic to intermediate algorithms, including sorting, searching, recursion, dynamic programming, and data structures.\r\nAnswering questions about course assignments, lab tasks, and logical errors in a clear and patient manner.\r\nHelping students improve their coding style, logical thinking, and problem-solving strategies without directly writing solutions for them.\r\nMaintaining a supportive learning environment, tracking common student difficulties, and reporting recurring issues to the instructor as needed.",
+  "requiredSkills": [
+    "JAVA",
+    "C++",
+    "Python"
+  ],
+  "quota": 2,
+  "workloadHoursPerWeek": 4,
+  "deadline": "2026-05-01",
+  "status": "closed",
+  "acceptedCount": 2,
+  "createdAt": "2026-04-08T23:37:05"
+}

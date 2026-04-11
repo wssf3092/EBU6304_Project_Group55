@@ -1,0 +1,19 @@
+{
+  "cachedAt": "2026-04-09T21:54:33",
+  "payload": {
+    "aiScore": 60,
+    "summary": "Applicant has relevant Java experience and communication skills but lacks required C++ and Python proficiency, limiting ability to assist students across all programming languages mentioned in the job description.",
+    "strengths": [
+      "Java programming experience",
+      "Student-facing communication skills",
+      "Peer support and teaching assistance background"
+    ],
+    "risks": [
+      "Missing required C++ skills",
+      "Missing required Python skills",
+      "Limited programming language coverage for office hour support",
+      "Unclear depth of algorithmic knowledge"
+    ],
+    "available": true
+  }
+}

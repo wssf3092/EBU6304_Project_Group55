@@ -1,0 +1,19 @@
+{
+  "jobId": "JOB_001",
+  "moId": "MO_001",
+  "title": "Advanced Lab Support 20260408101832",
+  "module": "EBU6304",
+  "activityType": "Lab Support",
+  "description": "Support weekly lab delivery, answer implementation questions, and help maintain marking consistency.",
+  "requiredSkills": [
+    "Java",
+    "Communication",
+    "Teaching Support"
+  ],
+  "quota": 2,
+  "workloadHoursPerWeek": 4,
+  "deadline": "2099-12-31",
+  "status": "open",
+  "acceptedCount": 0,
+  "createdAt": "2026-04-08T18:18:36"
+}

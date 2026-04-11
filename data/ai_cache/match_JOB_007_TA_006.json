@@ -1,0 +1,19 @@
+{
+  "cachedAt": "2026-04-09T18:24:33",
+  "payload": {
+    "aiScore": 95,
+    "summary": "Excellent match with all required skills demonstrated through relevant experience in peer support, lab preparation, and student communication.",
+    "strengths": [
+      "Direct experience with Java and peer support aligns with lab delivery needs",
+      "Proven student-facing communication skills suitable for answering questions",
+      "Background in lab preparation supports teaching assistance duties",
+      "All three required skills (Java, Communication, Teaching Support) are explicitly matched"
+    ],
+    "risks": [
+      "Limited information about specific teaching support methodologies",
+      "No details about experience with marking consistency maintenance",
+      "Unclear depth of Java expertise beyond \u0027hands-on\u0027 experience"
+    ],
+    "available": true
+  }
+}

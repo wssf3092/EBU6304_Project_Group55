@@ -1,0 +1,15 @@
+{
+  "userId": "TA_005",
+  "name": "Taylor QA 20260409035506",
+  "studentId": "2026213001",
+  "contactEmail": "qa-ta-20260409035506@example.com",
+  "major": "Software Engineering",
+  "year": 3,
+  "skills": [
+    "Java",
+    "Communication",
+    "Teaching Support"
+  ],
+  "bio": "Hands-on Java experience with peer support, lab preparation, and consistent student-facing communication.",
+  "maxWorkloadHoursPerWeek": 10
+}

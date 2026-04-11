@@ -13,5 +13,13 @@ build/
 .DS_Store
 Thumbs.db
 
-# Step 10: local AI secrets (never commit)
+# Runtime data
+logs/
+temp/
+
+# Step 10 / code_ref: local AI secrets (never commit)
 src/main/resources/ai-config.local.properties
+
+# Step 12: QA outputs and Playwright install
+artifacts/
+node_modules/
