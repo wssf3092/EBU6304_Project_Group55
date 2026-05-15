@@ -97,9 +97,9 @@ cd EBU6304_Project_Group55
 
 ### Branch Structure
 
-- `master` — 稳定发布分支，仅接受经过 Code Review 的 PR 合并
-- `develop` — 开发集成分支，所有功能分支合并至此
-- `feature/<member-name>/<feature-description>` — 个人功能开发分支
+- `master` — Stable release branch; only accepts PR merges that have passed Code Review
+- `develop` — Development integration branch; all feature branches merge here
+- `feature/<member-name>/<feature-description>` — Individual feature development branch
 
 ### Branch Naming Convention
 
