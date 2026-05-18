@@ -10,14 +10,21 @@ import com.group55.ta.util.ValidationUtil;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 /**
  * DAO for user account files.
+ * <p>
+ * Maintains a lazily-populated in-memory index ({@code userId → User}) so that {@link #findById(String)}
+ * avoids walking every role directory on each call. The index is invalidated whenever a write occurs,
+ * keeping JSON files as the source of truth.
  */
 public class UserDao {
     private static final Object LOCK = new Object();
+    private static volatile Map<String, User> idIndex;
 
     public Optional<User> findByEmail(String email) {
         String normalized = ValidationUtil.normalizeEmail(email);
@@ -30,6 +37,12 @@ public class UserDao {
         if (ValidationUtil.isBlank(userId)) {
             return Optional.empty();
         }
+        Map<String, User> index = ensureIndex();
+        User cached = index.get(userId);
+        if (cached != null) {
+            return Optional.of(cached);
+        }
+        // Fallback: read directly in case the index is stale across a concurrent invalidation.
         for (Role role : Role.values()) {
             Path file = AppPaths.users(role).resolve(userId + ".json");
             Optional<User> user = JsonFileUtil.read(file, User.class);
@@ -38,6 +51,31 @@ public class UserDao {
             }
         }
         return Optional.empty();
+    }
+
+    private Map<String, User> ensureIndex() {
+        Map<String, User> snapshot = idIndex;
+        if (snapshot != null) {
+            return snapshot;
+        }
+        synchronized (LOCK) {
+            if (idIndex == null) {
+                Map<String, User> built = new HashMap<>();
+                for (Role role : Role.values()) {
+                    for (User user : JsonFileUtil.readAll(AppPaths.users(role), User.class)) {
+                        if (user.getUserId() != null) {
+                            built.put(user.getUserId(), user);
+                        }
+                    }
+                }
+                idIndex = built;
+            }
+            return idIndex;
+        }
+    }
+
+    private static void invalidateIndex() {
+        idIndex = null;
     }
 
     public List<User> listByRole(Role role) {
@@ -102,6 +140,7 @@ public class UserDao {
     private void saveInternal(User user, Role role) {
         Path file = AppPaths.users(role).resolve(user.getUserId() + ".json");
         JsonFileUtil.write(file, user);
+        invalidateIndex();
     }
 
     private String nextUserId(Role role) {
