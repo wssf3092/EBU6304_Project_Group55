@@ -1,0 +1,8 @@
+Evaluate missing skills for a TA applicant.
+Return json with fields: summary (string), priorityGaps (array of objects with skill, why, suggestion).
+Example json: {"summary":"...","priorityGaps":[{"skill":"...","why":"...","suggestion":"..."}]}
+Job title: {{job.title}}
+Module: {{job.module}}
+Required skills: {{job.requiredSkills}}
+Applicant skills: {{applicant.skills}}
+Applicant bio: {{applicant.bio}}
