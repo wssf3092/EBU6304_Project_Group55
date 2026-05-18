@@ -3,6 +3,8 @@ package com.group55.ta.service;
 import com.group55.ta.dao.UserDao;
 import com.group55.ta.model.Role;
 import com.group55.ta.model.User;
+import com.group55.ta.util.LoginAttemptTracker;
+import com.group55.ta.util.PasswordPolicy;
 import com.group55.ta.util.PasswordUtil;
 import com.group55.ta.util.ValidationUtil;
 
@@ -25,25 +27,29 @@ public class AuthService {
         if (!ValidationUtil.isValidEmail(email)) {
             throw new IllegalArgumentException("Enter a valid email address.");
         }
-        if (ValidationUtil.trim(password).length() < 6) {
-            throw new IllegalArgumentException("Password must contain at least 6 characters.");
-        }
+        PasswordPolicy.validate(ValidationUtil.trim(password));
         return userDao.create(name, email, PasswordUtil.sha256(password), role);
     }
 
     public User authenticate(String email, String password) {
+        String lockKey = ValidationUtil.normalizeEmail(email);
+        LoginAttemptTracker.ensureNotLocked(lockKey);
+
         Optional<User> userOpt = userDao.findByEmail(email);
         if (!userOpt.isPresent()) {
+            LoginAttemptTracker.recordFailure(lockKey);
             throw new IllegalArgumentException("Invalid email or password.");
         }
         User user = userOpt.get();
         String hashed = PasswordUtil.sha256(ValidationUtil.trim(password));
         if (!hashed.equals(user.getPasswordHash())) {
+            LoginAttemptTracker.recordFailure(lockKey);
             throw new IllegalArgumentException("Invalid email or password.");
         }
         if (!user.isActive()) {
             throw new IllegalStateException("This account is disabled.");
         }
+        LoginAttemptTracker.recordSuccess(lockKey);
         return user;
     }
 
