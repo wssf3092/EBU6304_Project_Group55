@@ -1,0 +1,5 @@
+Balance workload across TAs using anonymized data.
+Return json with fields: summary (string), recommendations (array of objects with taId, jobId, reason).
+Example json: {"summary":"...","recommendations":[{"taId":"...","jobId":"...","reason":"..."}]}
+TA workload entries: {{workload.entries}}
+Open jobs: {{jobs.open}}
