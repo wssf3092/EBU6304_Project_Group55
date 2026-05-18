@@ -15,6 +15,9 @@ import com.group55.ta.model.Job;
 import com.group55.ta.model.Role;
 import com.group55.ta.model.User;
 import com.group55.ta.model.WorkloadEntry;
+import com.group55.ta.util.CvFileUtil;
+import com.group55.ta.util.CvSkillExtractor;
+import com.group55.ta.util.CvTextExtractor;
 import com.group55.ta.util.DateTimeUtil;
 import com.group55.ta.util.SkillUtil;
 import com.group55.ta.util.ValidationUtil;
@@ -116,7 +119,31 @@ public class RecruitmentService {
         profile.setContactEmail(ValidationUtil.normalizeEmail(user.getEmail()));
         profile.setCvFileName(fileName);
         profile.setCvUploadedAt(DateTimeUtil.nowIso());
+        autoFillSkillsFromCv(profile);
         applicantDao.save(profile);
+    }
+
+    /**
+     * Best-effort auto-fill of {@link ApplicantProfile#getSkills()} using keyword extraction over
+     * the freshly uploaded CV. Existing skill entries are preserved; only new dictionary hits are
+     * appended so that manual edits remain authoritative.
+     */
+    private void autoFillSkillsFromCv(ApplicantProfile profile) {
+        try {
+            String cvText = CvFileUtil.findCv(profile.getUserId())
+                    .map(CvTextExtractor::extractText)
+                    .orElse("");
+            if (ValidationUtil.isBlank(cvText)) {
+                return;
+            }
+            List<String> extracted = CvSkillExtractor.extract(cvText);
+            if (extracted.isEmpty()) {
+                return;
+            }
+            profile.setSkills(CvSkillExtractor.mergeSkills(profile.getSkills(), extracted));
+        } catch (Exception ignored) {
+            // Auto-fill must never break the upload flow.
+        }
     }
 
     public Optional<ApplicantProfile> findProfile(String userId) {
