@@ -1,0 +1,8 @@
+Assess the applicant-job match.
+Return json with fields: aiScore (integer 0-100), summary (string), strengths (array of strings), risks (array of strings).
+Example json: {"aiScore":84,"summary":"...","strengths":["..."],"risks":["..."]}
+Required skills: {{job.requiredSkills}}
+Job description: {{job.description}}
+Applicant skills: {{applicant.skills}}
+Applicant bio: {{applicant.bio}}
+Applicant CV text: {{applicant.cvText}}
