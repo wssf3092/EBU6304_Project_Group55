@@ -6,15 +6,23 @@ import com.group55.ta.util.DateTimeUtil;
 import com.group55.ta.util.JsonFileUtil;
 
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 /**
  * DAO for job posting JSON files.
+ * <p>
+ * Maintains a lazily-populated in-memory index ({@code jobId → Job}) so AI matching, dashboards,
+ * and admin views avoid repeated whole-directory scans. Writes invalidate the index; the JSON
+ * files remain the source of truth.
  */
 public class JobDao {
     private static final Object LOCK = new Object();
+    private static volatile Map<String, Job> idIndex;
 
     public Job create(Job job) {
         synchronized (LOCK) {
@@ -31,10 +39,18 @@ public class JobDao {
         synchronized (LOCK) {
             Path file = AppPaths.jobs().resolve(job.getJobId() + ".json");
             JsonFileUtil.write(file, job);
+            invalidateIndex();
         }
     }
 
     public Optional<Job> findById(String jobId) {
+        if (jobId == null || jobId.isEmpty()) {
+            return Optional.empty();
+        }
+        Job cached = ensureIndex().get(jobId);
+        if (cached != null) {
+            return Optional.of(cached);
+        }
         synchronized (LOCK) {
             Path file = AppPaths.jobs().resolve(jobId + ".json");
             return JsonFileUtil.read(file, Job.class);
@@ -42,11 +58,32 @@ public class JobDao {
     }
 
     public List<Job> listAll() {
-        synchronized (LOCK) {
-            List<Job> jobs = JsonFileUtil.readAll(AppPaths.jobs(), Job.class);
-            jobs.sort(Comparator.comparing(Job::getCreatedAt, Comparator.nullsLast(String::compareTo)).reversed());
-            return jobs;
+        List<Job> jobs = new ArrayList<>(ensureIndex().values());
+        jobs.sort(Comparator.comparing(Job::getCreatedAt, Comparator.nullsLast(String::compareTo)).reversed());
+        return jobs;
+    }
+
+    private Map<String, Job> ensureIndex() {
+        Map<String, Job> snapshot = idIndex;
+        if (snapshot != null) {
+            return snapshot;
         }
+        synchronized (LOCK) {
+            if (idIndex == null) {
+                Map<String, Job> built = new HashMap<>();
+                for (Job job : JsonFileUtil.readAll(AppPaths.jobs(), Job.class)) {
+                    if (job.getJobId() != null) {
+                        built.put(job.getJobId(), job);
+                    }
+                }
+                idIndex = built;
+            }
+            return idIndex;
+        }
+    }
+
+    private static void invalidateIndex() {
+        idIndex = null;
     }
 
     public boolean closeJob(String jobId) {
