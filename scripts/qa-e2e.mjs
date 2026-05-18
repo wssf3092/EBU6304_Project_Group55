@@ -1,6 +1,7 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 import { chromium } from "playwright";
+import { buildAccounts, defaultTimestamp } from "./qa/fixtures.mjs";
 
 const repoRoot = process.cwd();
 const artifactRoot = path.join(repoRoot, "artifacts", "qa");
@@ -10,7 +11,7 @@ const baseUrl = process.env.QA_BASE_URL || "http://127.0.0.1:18080";
 const dataRoot = process.env.QA_DATA_ROOT || path.join(artifactRoot, "run-data");
 const skipPersistence = process.env.QA_SKIP_PERSISTENCE === "1";
 
-const timestamp = new Date().toISOString().replace(/[-:.TZ]/g, "").slice(0, 14);
+const timestamp = defaultTimestamp();
 const jobTitle = `Advanced Lab Support ${timestamp}`;
 
 const summary = {
@@ -33,29 +34,7 @@ const summary = {
   }
 };
 
-const accounts = {
-  mo: {
-    name: `Morgan QA ${timestamp}`,
-    email: `qa-mo-${timestamp}@example.com`,
-    password: "Pass1234",
-    role: "MO",
-    homePath: "/mo/dashboard"
-  },
-  ta: {
-    name: `Taylor QA ${timestamp}`,
-    email: `qa-ta-${timestamp}@example.com`,
-    password: "Pass1234",
-    role: "TA",
-    homePath: "/ta/dashboard"
-  },
-  admin: {
-    name: `Alex QA ${timestamp}`,
-    email: `qa-admin-${timestamp}@example.com`,
-    password: "Pass1234",
-    role: "ADMIN",
-    homePath: "/admin/workload"
-  }
-};
+const accounts = buildAccounts(timestamp);
 
 let browser;
 let context;
