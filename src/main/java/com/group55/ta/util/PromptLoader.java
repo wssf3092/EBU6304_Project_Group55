@@ -5,6 +5,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -15,6 +17,10 @@ import java.util.concurrent.ConcurrentHashMap;
  * <p>
  * Externalizing prompts keeps {@link com.group55.ta.service.AiService} focused on orchestration
  * and lets non-Java collaborators tune wording without touching code.
+ * <p>
+ * <b>Runtime override:</b> if a file {@code <data.root>/prompts/<name>.txt} exists on disk it
+ * takes priority over the bundled classpath resource and is re-read on every call (no caching),
+ * allowing operators to hot-swap prompt wording in production without redeployment.
  */
 public final class PromptLoader {
 
@@ -30,6 +36,10 @@ public final class PromptLoader {
      * @return raw template content (never {@code null})
      */
     public static String load(String name) {
+        Path override = AppPaths.getDataRoot().resolve("prompts").resolve(name + ".txt");
+        if (Files.isRegularFile(override)) {
+            return readFile(override);
+        }
         return CACHE.computeIfAbsent(name, PromptLoader::readResource);
     }
 
@@ -73,6 +83,14 @@ public final class PromptLoader {
             }
         } catch (IOException ex) {
             throw new IllegalStateException("Failed to read prompt template: " + path, ex);
+        }
+    }
+
+    private static String readFile(Path path) {
+        try {
+            return new String(Files.readAllBytes(path), StandardCharsets.UTF_8);
+        } catch (IOException ex) {
+            throw new IllegalStateException("Failed to read prompt override file: " + path, ex);
         }
     }
 }
