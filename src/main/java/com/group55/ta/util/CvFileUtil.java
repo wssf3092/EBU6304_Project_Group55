@@ -6,6 +6,7 @@ import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
+import java.util.Arrays;
 import java.util.Locale;
 import java.util.Optional;
 import java.util.stream.Stream;
@@ -18,6 +19,9 @@ public final class CvFileUtil {
 
     private CvFileUtil() {
     }
+
+    private static final byte[] PDF_MAGIC = new byte[]{(byte) 0x25, (byte) 0x50, (byte) 0x44, (byte) 0x46};
+    private static final byte[] DOCX_MAGIC = new byte[]{(byte) 0x50, (byte) 0x4B, (byte) 0x03, (byte) 0x04};
 
     public static String saveUpload(String userId, Part part) {
         if (ValidationUtil.isBlank(userId)) {
@@ -33,6 +37,21 @@ public final class CvFileUtil {
         String lower = submitted.toLowerCase(Locale.ROOT);
         if (!(lower.endsWith(".pdf") || lower.endsWith(".docx"))) {
             throw new IllegalArgumentException("Only PDF and DOCX files are allowed.");
+        }
+        String mimeType = part.getContentType();
+        if (mimeType != null) {
+            String mime = mimeType.toLowerCase(Locale.ROOT).trim();
+            boolean mimeOk = mime.equals("application/pdf")
+                    || mime.equals("application/vnd.openxmlformats-officedocument.wordprocessingml.document")
+                    || mime.equals("application/octet-stream");
+            if (!mimeOk) {
+                throw new IllegalArgumentException("Unexpected content type '" + mimeType + "'. Only PDF and DOCX files are allowed.");
+            }
+        }
+        try {
+            verifyMagicBytes(part);
+        } catch (IOException ex) {
+            throw new IllegalStateException("Unable to inspect the uploaded file.", ex);
         }
 
         Path directory = AppPaths.cvs().resolve(userId);
@@ -54,6 +73,21 @@ public final class CvFileUtil {
             return submitted;
         } catch (IOException ex) {
             throw new IllegalStateException("Unable to save the uploaded CV file.", ex);
+        }
+    }
+
+    private static void verifyMagicBytes(Part part) throws IOException {
+        byte[] header = new byte[4];
+        try (InputStream is = part.getInputStream()) {
+            int read = is.read(header);
+            if (read < 4) {
+                throw new IllegalArgumentException("Uploaded file is too small to be a valid PDF or DOCX.");
+            }
+        }
+        boolean isPdf = Arrays.equals(header, PDF_MAGIC);
+        boolean isDocx = Arrays.equals(header, DOCX_MAGIC);
+        if (!isPdf && !isDocx) {
+            throw new IllegalArgumentException("File content does not match a recognised PDF or DOCX format.");
         }
     }
 
