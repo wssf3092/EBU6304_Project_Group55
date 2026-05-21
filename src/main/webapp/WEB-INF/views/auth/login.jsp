@@ -4,6 +4,9 @@
         <h2>Sign In</h2>
     </div>
     <%@ include file="/WEB-INF/views/shared/flash.jspf" %>
+    <c:if test="${param.timeout == '1'}">
+        <div class="alert alert-warning">Your session expired due to inactivity. Please sign in again.</div>
+    </c:if>
     <form method="post" action="${pageContext.request.contextPath}/auth/login" class="form-grid">
         <label class="field">
             <span>Email</span>
