@@ -53,6 +53,35 @@ public final class JsonFileUtil {
         }
     }
 
+    /**
+     * Serializes {@code payload} and writes to {@code path} only when the resulting JSON differs
+     * from what is already on disk. Skipping identical writes reduces I/O and prevents unnecessary
+     * DAO in-memory index invalidations that would otherwise discard a warm cache after every read.
+     *
+     * @return {@code true} if a write was performed, {@code false} if the file was unchanged
+     */
+    public static boolean writeIfChanged(Path path, Object payload) {
+        String serialized = GsonProvider.gson().toJson(payload);
+        if (Files.exists(path)) {
+            try {
+                String existing = new String(Files.readAllBytes(path), StandardCharsets.UTF_8);
+                if (serialized.equals(existing)) {
+                    return false;
+                }
+            } catch (IOException ignored) {
+            }
+        }
+        try {
+            Files.createDirectories(path.getParent());
+            Path temp = path.resolveSibling(path.getFileName().toString() + ".tmp");
+            Files.write(temp, serialized.getBytes(StandardCharsets.UTF_8));
+            Files.move(temp, path, StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);
+        } catch (IOException ex) {
+            throw new IllegalStateException("Failed writing JSON file: " + path, ex);
+        }
+        return true;
+    }
+
     public static List<Path> listJsonFiles(Path directory) {
         List<Path> files = new ArrayList<>();
         if (directory == null || !Files.exists(directory)) {
