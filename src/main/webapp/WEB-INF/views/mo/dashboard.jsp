@@ -53,4 +53,20 @@
         </table>
     </div>
 </section>
+<section class="panel">
+    <div class="panel-head">
+        <div>
+            <h2>Application Status</h2>
+            <p class="panel-subtitle">Distribution across all your job postings</p>
+        </div>
+    </div>
+    <div class="chart-row">
+        <div class="chart-wrap chart-wrap--sm">
+            <canvas id="moStatusChart"></canvas>
+        </div>
+    </div>
+    <script id="moStatusData" type="application/json"><c:out value="${statusChartJson}" escapeXml="false"/></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <script src="${pageContext.request.contextPath}/assets/js/mo-charts.js"></script>
+</section>
 <%@ include file="/WEB-INF/views/shared/app-end.jspf" %>
