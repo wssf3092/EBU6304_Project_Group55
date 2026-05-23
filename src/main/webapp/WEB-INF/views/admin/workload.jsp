@@ -68,6 +68,34 @@
 <section class="panel">
     <div class="panel-head">
         <div>
+            <h2>Workload distribution</h2>
+            <p class="cell-subtle">Hours allocated per TA versus their declared weekly capacity. Bars exceeding the dashed limit indicate overload.</p>
+        </div>
+    </div>
+    <div class="chart-row">
+        <div class="chart-wrap">
+            <canvas id="workloadChart"></canvas>
+        </div>
+    </div>
+    <div class="panel-head">
+        <div>
+            <h3>Load status mix</h3>
+            <p class="panel-subtitle">Distribution of TAs across load categories</p>
+        </div>
+    </div>
+    <div class="chart-row">
+        <div class="chart-wrap chart-wrap--sm">
+            <canvas id="loadStatusChart"></canvas>
+        </div>
+    </div>
+    <script id="workload-data" type="application/json"><c:forEach items="${workloads}" var="w" varStatus="s">{"name":"<c:out value='${w.name}' escapeXml='true'/>","userId":"<c:out value='${w.userId}'/>","totalHours":<c:out value="${w.totalHours}"/>,"maxHours":<c:out value="${w.maxHours}"/>,"loadStatus":"<c:out value='${w.loadStatus}'/>"}<c:if test="${not s.last}">,</c:if></c:forEach></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <script src="${pageContext.request.contextPath}/assets/js/workload-charts.js"></script>
+</section>
+
+<section class="panel">
+    <div class="panel-head">
+        <div>
             <h2>Jobs</h2>
         </div>
         <a class="btn secondary" href="${pageContext.request.contextPath}/admin/jobs">Manage</a>

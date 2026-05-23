@@ -470,6 +470,43 @@ textarea {
     line-height: 1.55;
 }
 
+.panel-subtitle {
+    margin-top: 4px;
+    font-size: 0.85rem;
+    color: var(--muted);
+    line-height: 1.5;
+}
+
+.chart-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 24px;
+    align-items: flex-start;
+    margin-top: 12px;
+}
+
+.chart-wrap {
+    position: relative;
+    flex: 1 1 0;
+    min-width: 0;
+    height: 320px;
+}
+
+.chart-wrap--sm {
+    height: 240px;
+    max-width: 480px;
+    flex: 0 0 auto;
+}
+
+.chart-empty {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    color: var(--muted);
+    font-size: 0.9rem;
+}
+
 .metric-grid {
     display: grid;
     grid-template-columns: repeat(4, minmax(0, 1fr));

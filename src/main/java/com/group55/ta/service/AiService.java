@@ -18,6 +18,7 @@ import com.group55.ta.util.AiHttpClient;
 import com.group55.ta.util.AppPaths;
 import com.group55.ta.util.CvFileUtil;
 import com.group55.ta.util.CvTextExtractor;
+import com.group55.ta.util.PromptLoader;
 import com.group55.ta.util.SkillUtil;
 import com.group55.ta.util.ValidationUtil;
 
@@ -25,6 +26,7 @@ import java.nio.file.Path;
 import java.time.Duration;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -66,17 +68,16 @@ public class AiService {
         }
 
         Path cacheFile = AppPaths.aiCache().resolve("gap_" + job.getJobId() + "_" + requester.getUserId() + ".json");
+        Map<String, String> vars = PromptLoader.vars();
+        vars.put("job.title", job.getTitle());
+        vars.put("job.module", job.getModule());
+        vars.put("job.requiredSkills", String.join(", ", job.getRequiredSkills()));
+        vars.put("applicant.skills", String.join(", ", profile.getSkills()));
+        vars.put("applicant.bio", profile.getBio() == null ? "" : profile.getBio());
         JsonObject aiPayload = cachedOrFetch(cacheFile, Duration.ofMinutes(config.getCacheMinutes()), () ->
                 client.requestJson(
-                        "You are assisting a teaching assistant recruitment platform. Return valid json only.",
-                        "Evaluate missing skills for a TA applicant.\n"
-                                + "Return json with fields: summary (string), priorityGaps (array of objects with skill, why, suggestion).\n"
-                                + "Example json: {\"summary\":\"...\",\"priorityGaps\":[{\"skill\":\"...\",\"why\":\"...\",\"suggestion\":\"...\"}]}\n"
-                                + "Job title: " + job.getTitle() + "\n"
-                                + "Module: " + job.getModule() + "\n"
-                                + "Required skills: " + String.join(", ", job.getRequiredSkills()) + "\n"
-                                + "Applicant skills: " + String.join(", ", profile.getSkills()) + "\n"
-                                + "Applicant bio: " + profile.getBio()
+                        PromptLoader.load("skills-gap.system"),
+                        PromptLoader.render("skills-gap.user", vars)
                 ));
         mergeGapResult(result, aiPayload);
         return result;
@@ -123,17 +124,16 @@ public class AiService {
 
         String cvText = CvFileUtil.findCv(application.getApplicantId()).map(CvTextExtractor::extractText).orElse("");
         Path cacheFile = AppPaths.aiCache().resolve("match_" + job.getJobId() + "_" + application.getApplicantId() + ".json");
+        Map<String, String> vars = PromptLoader.vars();
+        vars.put("job.requiredSkills", String.join(", ", job.getRequiredSkills()));
+        vars.put("job.description", job.getDescription() == null ? "" : job.getDescription());
+        vars.put("applicant.skills", String.join(", ", profile.getSkills()));
+        vars.put("applicant.bio", profile.getBio() == null ? "" : profile.getBio());
+        vars.put("applicant.cvText", ValidationUtil.isBlank(cvText) ? "No extractable CV text available." : cvText);
         JsonObject aiPayload = cachedOrFetch(cacheFile, Duration.ofMinutes(config.getCacheMinutes()), () ->
                 client.requestJson(
-                        "You are assisting a teaching assistant recruitment platform. Return valid json only.",
-                        "Assess the applicant-job match.\n"
-                                + "Return json with fields: aiScore (integer 0-100), summary (string), strengths (array of strings), risks (array of strings).\n"
-                                + "Example json: {\"aiScore\":84,\"summary\":\"...\",\"strengths\":[\"...\"],\"risks\":[\"...\"]}\n"
-                                + "Required skills: " + String.join(", ", job.getRequiredSkills()) + "\n"
-                                + "Job description: " + job.getDescription() + "\n"
-                                + "Applicant skills: " + String.join(", ", profile.getSkills()) + "\n"
-                                + "Applicant bio: " + profile.getBio() + "\n"
-                                + "Applicant CV text: " + (ValidationUtil.isBlank(cvText) ? "No extractable CV text available." : cvText)
+                        PromptLoader.load("match-insight.system"),
+                        PromptLoader.render("match-insight.user", vars)
                 ));
         mergeMatchResult(result, aiPayload);
         return result;
@@ -161,17 +161,16 @@ public class AiService {
         }
 
         Path cacheFile = AppPaths.aiCache().resolve("workload_balance.json");
+        Map<String, String> vars = PromptLoader.vars();
+        vars.put("workload.entries", anonymizedWorkload(workloadEntries));
+        vars.put("jobs.open", openJobs.stream()
+                .map(job -> job.getJobId() + " [" + job.getTitle() + "] skills=" + String.join("/", job.getRequiredSkills())
+                        + " hours=" + job.getWorkloadHoursPerWeek())
+                .collect(Collectors.joining("; ")));
         JsonObject aiPayload = cachedOrFetch(cacheFile, Duration.ofMinutes(config.getCacheMinutes()), () ->
                 client.requestJson(
-                        "You are assisting an academic recruitment admin console. Return valid json only.",
-                        "Balance workload across TAs using anonymized data.\n"
-                                + "Return json with fields: summary (string), recommendations (array of objects with taId, jobId, reason).\n"
-                                + "Example json: {\"summary\":\"...\",\"recommendations\":[{\"taId\":\"...\",\"jobId\":\"...\",\"reason\":\"...\"}]}\n"
-                                + "TA workload entries: " + anonymizedWorkload(workloadEntries) + "\n"
-                                + "Open jobs: " + openJobs.stream()
-                                .map(job -> job.getJobId() + " [" + job.getTitle() + "] skills=" + String.join("/", job.getRequiredSkills())
-                                        + " hours=" + job.getWorkloadHoursPerWeek())
-                                .collect(Collectors.joining("; "))
+                        PromptLoader.load("workload-balance.system"),
+                        PromptLoader.render("workload-balance.user", vars)
                 ));
         mergeWorkloadResult(result, aiPayload);
         return result;
